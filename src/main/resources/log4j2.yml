@@ -1,0 +1,20 @@
+Configutation:
+  status: warn
+  monitorInterval: 30
+  Appenders:
+    Console:
+      name: CONSOLE
+      target: SYSTEM_OUT
+      PatternLayout:
+        Pattern: "%d [%t] %style{%.-8mdc{reference}}{BG_Yellow,FG_Black} %highlight{%-5level: %msg%n%throwable}"
+  Loggers:
+      Root:
+        level: info
+        AppenderRef:
+          - ref: CONSOLE
+      Logger:
+        - name: be.ictdynamicmic
+          additivity: false
+          level: debug
+          AppenderRef:
+            - ref: CONSOLE
