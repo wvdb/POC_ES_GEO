@@ -26,9 +26,7 @@ public class LocationService {
     public void processLocations(LocationRequest locationRequest) throws IllegalArgumentException, IOException {
         Date startDate = new Date();
 
-
         for (LocationRequest.Location location : locationRequest.getLocations()) {
-
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Location = {}.", location);
             }
@@ -58,8 +56,7 @@ public class LocationService {
             }
         }
 
-        MDE_Utilities.timedReturn(LOGGER, new Object() {
-        }.getClass().getEnclosingMethod().getName(), startDate.getTime());
+        MDE_Utilities.timedReturn(LOGGER, new Object() {}.getClass().getEnclosingMethod().getName(), startDate.getTime());
     }
 
 //    public Event retrieveEvent(String elasticSearchId) throws IOException {
