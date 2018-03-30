@@ -16,17 +16,18 @@ public class LocationRequest {
         this.locations = locations;
     }
 
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class Location {
         private String id;
-        private String naam;
-        private String point_lat;
-        private String point_lng;
+        private String name;
         private String status;
-        private String niveau;
+        private String level;
         private String planning;
         private String shape;
-        private String objectid;
-        private String gisid;
+        private String objectId;
+        private String gisId;
+        private String point_lat;
+        private String point_lng;
 
         public String getId() {
             return id;
@@ -36,12 +37,12 @@ public class LocationRequest {
             this.id = id;
         }
 
-        public String getNaam() {
-            return naam;
+        public String getName() {
+            return name;
         }
 
-        public void setNaam(String naam) {
-            this.naam = naam;
+        public void setName(String name) {
+            this.name = name;
         }
 
         public String getPoint_lat() {
@@ -68,12 +69,12 @@ public class LocationRequest {
             this.status = status;
         }
 
-        public String getNiveau() {
-            return niveau;
+        public String getLevel() {
+            return level;
         }
 
-        public void setNiveau(String niveau) {
-            this.niveau = niveau;
+        public void setLevel(String level) {
+            this.level = level;
         }
 
         public String getPlanning() {
@@ -92,21 +93,23 @@ public class LocationRequest {
             this.shape = shape;
         }
 
-        public String getObjectid() {
-            return objectid;
+        public String getObjectId() {
+            return objectId;
         }
 
-        public void setObjectid(String objectid) {
-            this.objectid = objectid;
+        public void setObjectId(String objectId) {
+            this.objectId = objectId;
         }
 
-        public String getGisid() {
-            return gisid;
+        public String getGisId() {
+            return gisId;
         }
 
-        public void setGisid(String gisid) {
-            this.gisid = gisid;
+        public void setGisId(String gisId) {
+            this.gisId = gisId;
         }
+
+
     }
 
 }

@@ -15,9 +15,11 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.validation.Valid;
 import java.io.IOException;
+import java.util.Set;
 
 @Controller
 public class GEO_Controller extends BaseController {
@@ -41,15 +43,14 @@ public class GEO_Controller extends BaseController {
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(locationResponse);
     }
 
-//    @ApiOperation(value = "Method to retrieve events of a customer and related to a use case.", notes = "")
-//    @RequestMapping(value="/locations", method=RequestMethod.GET)
-//    public ResponseEntity<List<Event>> retrieveEvents (
-//            @RequestParam(value = "useCase", required = true) String useCase,
-//            @RequestParam(value = "customerId", required = true) String customerId,
-//            @RequestParam(value = "deviceId", required = true) String deviceId,
-//            @RequestParam(value = "historySeconds", required = false) Long historySeconds
-//    ) throws Exception {
-//        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(locationService.retrieveEvents(useCase, customerId, deviceId, historySeconds));
-//    }
+    @ApiOperation(value = "Method to retrieve locations.", notes = "")
+    @RequestMapping(value="/locations", method=RequestMethod.GET)
+    public ResponseEntity<Set<LocationRequest.Location>> retrieveEvents (
+            @RequestParam(value = "lat", required = true) double lat,
+            @RequestParam(value = "lon", required = true) double lon,
+            @RequestParam(value = "distance", required = true) int distance
+    ) throws Exception {
+        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(locationService.geoDistanceQuery(lat, lon, distance));
+    }
 
 }

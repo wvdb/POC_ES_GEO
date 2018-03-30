@@ -3,7 +3,15 @@ package be.ictdynamic.ES_GEO_POC.service;
 import be.ictdynamic.ES_GEO_POC.model.LocationRequest;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.index.IndexResponse;
+import org.elasticsearch.action.search.SearchRequest;
+import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.common.unit.DistanceUnit;
+import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.SearchHits;
+import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,6 +21,9 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.util.Date;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
 
 @Component
 @PropertySource(value = {"classpath:/application.properties"}, ignoreResourceNotFound = true)
@@ -39,14 +50,14 @@ public class LocationService {
             IndexRequest indexRequest = new IndexRequest("location", "doc")
                     .source(
                             "id", location.getId(),
-                            "name", location.getNaam(),
+                            "name", location.getName(),
                             "myLocation", myLocation,
                             "status", location.getStatus(),
-                            "level", location.getNiveau(),
+                            "level", location.getLevel(),
                             "planning", location.getPlanning(),
                             "shape", location.getShape(),
-                            "objectId", location.getObjectid(),
-                            "gisId", location.getGisid()
+                            "objectId", location.getObjectId(),
+                            "gisId", location.getGisId()
                     );
 
             IndexResponse indexResponse = restClient.index(indexRequest);
@@ -59,34 +70,48 @@ public class LocationService {
         MDE_Utilities.timedReturn(LOGGER, new Object() {}.getClass().getEnclosingMethod().getName(), startDate.getTime());
     }
 
-//    public Event retrieveEvent(String elasticSearchId) throws IOException {
-//        Date startDate = new Date();
-//
-//        SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
-//
-//        BoolQueryBuilder boolQuery = new BoolQueryBuilder();
-//        boolQuery.must(QueryBuilders.idsQuery().addIds(elasticSearchId));
-//        sourceBuilder.query(boolQuery);
-//
-//        SearchRequest searchRequest = new SearchRequest(ELASTIC_SEARCH_INDEX_NAME)
-//                .types(ELASTIC_SEARCH_INDEX_TYPE)
-//                .source(sourceBuilder);
-//
-//        SearchResponse searchResponse = restClient.search(searchRequest);
-//
-//        SearchHits hits = searchResponse.getHits();
-//
-//        Event event = new Event();
-//
-//        if (hits.getHits().length == 1) {
-//            SearchHit hit = hits.getHits()[0];
-//            event = getEventFromESHit(hit);
-//        }
-//        else {
-//            LOGGER.warn("Searching event on event id {} failed (not exactly one hit). # of hits = {}.", elasticSearchId, hits.getHits().length);
-//        }
-//
-//        return MDE_Utilities.timedReturn(LOGGER, new Object(){}.getClass().getEnclosingMethod().getName(), startDate.getTime(), event);
-//    }
+    public Set<LocationRequest.Location> geoDistanceQuery(double lat, double lon, int distance) throws IOException {
+        Set<LocationRequest.Location> locations = new LinkedHashSet<>();
+        SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
+
+        QueryBuilder query = QueryBuilders.matchAllQuery();
+
+        QueryBuilder geoDistanceQueryBuilder = QueryBuilders
+                .geoDistanceQuery("myLocation")
+                .point(lat, lon)
+                .distance(distance, DistanceUnit.KILOMETERS);
+
+        QueryBuilder finalQuery = QueryBuilders.boolQuery().must(query).filter(geoDistanceQueryBuilder);
+
+        sourceBuilder.query(finalQuery);
+
+        SearchRequest searchRequest = new SearchRequest("location").source(sourceBuilder);
+
+        SearchResponse searchResponse = restClient.search(searchRequest);
+
+        SearchHits hits = searchResponse.getHits();
+
+        for (SearchHit hit : hits.getHits()) {
+            locations.add(getDocumentsFromHit(hit));
+        }
+
+        return locations;
+    }
+
+    private static LocationRequest.Location getDocumentsFromHit(SearchHit hit) {
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("hit: id = {}", hit.getId());
+        }
+
+        LocationRequest.Location location = new LocationRequest.Location();
+
+        Map<String,Object> source = hit.getSourceAsMap();
+
+        location.setId((String) source.get("id"));
+        location.setName((String) source.get("name"));
+        location.setObjectId((String) source.get("objectId"));
+
+        return location;
+    }
 
 }
