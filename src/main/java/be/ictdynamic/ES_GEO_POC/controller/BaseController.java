@@ -1,6 +1,6 @@
 package be.ictdynamic.ES_GEO_POC.controller;
 
-import be.ictdynamic.ES_GEO_POC.model.LocationResponse;
+import be.ictdynamic.ES_GEO_POC.model.PocResponse;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -15,6 +15,6 @@ public class BaseController {
     public ResponseEntity handleException(Exception ex) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        return new ResponseEntity<>(new LocationResponse((ex.getMessage() == null) ? ex.toString() : ex.getMessage()), headers, HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>(new PocResponse((ex.getMessage() == null) ? ex.toString() : ex.getMessage()), headers, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }
