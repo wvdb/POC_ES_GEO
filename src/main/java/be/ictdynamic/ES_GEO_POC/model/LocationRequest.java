@@ -28,6 +28,7 @@ public class LocationRequest {
         private String gisId;
         private String point_lat;
         private String point_lng;
+        private float  score;
 
         public String getId() {
             return id;
@@ -109,7 +110,13 @@ public class LocationRequest {
             this.gisId = gisId;
         }
 
+        public float getScore() {
+            return score;
+        }
 
+        public void setScore(float score) {
+            this.score = score;
+        }
     }
 
 }

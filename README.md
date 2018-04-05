@@ -1,4 +1,4 @@
-# Event Tracking Service
+# ELasticSearch GEO POC
 
 ## History
 

@@ -23,7 +23,7 @@ public class SwaggerConfig {
     public Docket api() {
         return new Docket(DocumentationType.SWAGGER_2)
                 .select()
-                .apis(RequestHandlerSelectors.basePackage("be.ictdynamic.tveng.mde"))
+                .apis(RequestHandlerSelectors.basePackage("be.ictdynamic"))
                 .paths(PathSelectors.any())
                 .build()
                 .apiInfo(apiInfo());
@@ -31,8 +31,8 @@ public class SwaggerConfig {
 
     private ApiInfo apiInfo() {
         return new ApiInfoBuilder()
-                .title("Event Tracking Service")
-                .description("The Event Tracking Service is mainly a data collection service in the Media Decisioning Engine (MDE). It's main purpose is to collect media viewing impressions (events) from a southbound component.")
+                .title("Elasticsearch GEO POC")
+                .description("This project has been designed/developed as a POC. Focus of the POC is to test a number of GEO related queries against Elasticsearch (ES).")
                 .contact(new Contact("Wim Van den Brande", "", "info@ictdynamic.be"))
                 .build();
     }
