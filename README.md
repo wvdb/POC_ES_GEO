@@ -1,7 +1,12 @@
-# Elasticsearch GEO POC
+# Elasticsearch Spatial Queries POC
 
 ## History
-This project has been designed/developed as a POC. Focus of the POC is to test a number of GEO related queries against Elasticsearch (ES).
+This project has been designed/developed as a POC. Focus of the POC is to test some Spatial Queries against Elasticsearch (ES).<br>
+For this POC, we use the RestHighLevelClient and rely entirely on REST.<br>
+You can find 3 following types of Spatial Queries: 
+- retrieve objects within certain distance
+- retrieve communes within rectangle/BoundingBox
+- retrieve communes within a polygon (implemented as a unit test)  
 
 ## Running the project
 

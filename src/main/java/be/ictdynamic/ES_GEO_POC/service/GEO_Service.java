@@ -71,6 +71,7 @@ public class GEO_Service {
         return timedReturn(LOGGER, new Object() {}.getClass().getEnclosingMethod().getName(), startDate.getTime(), objectsWithinDistance);
     }
 
+    @SuppressWarnings("unchecked")
     private static <T> T getObjectFromES_Hit(SearchHit hit, String objectType) {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("hit: id = {}", hit.getId());
