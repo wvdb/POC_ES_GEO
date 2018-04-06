@@ -1,6 +1,6 @@
 package be.ictdynamic.ES_GEO_POC.service;
 
-import be.ictdynamic.ES_GEO_POC.model.LocationRequest;
+import be.ictdynamic.ES_GEO_POC.model.CommuneRequest;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.client.RestHighLevelClient;
@@ -16,37 +16,30 @@ import java.util.Date;
 
 @Component
 @PropertySource(value = {"classpath:/application.properties"}, ignoreResourceNotFound = true)
-public class LocationService {
+public class CommuneService {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(LocationService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(CommuneService.class);
 
     @Autowired
     private RestHighLevelClient restClient;
 
-    public void persistLocations(LocationRequest locationRequest) throws IllegalArgumentException, IOException {
+    public void persistCommunes(CommuneRequest communeRequest) throws IllegalArgumentException, IOException {
         Date startDate = new Date();
 
-        for (LocationRequest.Location location : locationRequest.getLocations()) {
+        for (CommuneRequest.Commune commune : communeRequest.getCommunes()) {
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Location = {}.", location);
+                LOGGER.debug("Location = {}.", commune);
             }
 
             JSONObject myLocation = new JSONObject();
 
-            myLocation.put("lat", location.getPoint_lat());
-            myLocation.put("lon", location.getPoint_lng());
+            myLocation.put("lat", commune.getLat());
+            myLocation.put("lon", commune.getLng());
 
-            IndexRequest indexRequest = new IndexRequest("location", "doc")
+            IndexRequest indexRequest = new IndexRequest("commune", "doc", commune.getZip())
                     .source(
-                            "id", location.getId(),
-                            "name", location.getName(),
-                            "myLocation", myLocation,
-                            "status", location.getStatus(),
-                            "level", location.getLevel(),
-                            "planning", location.getPlanning(),
-                            "shape", location.getShape(),
-                            "objectId", location.getObjectId(),
-                            "gisId", location.getGisId()
+                            "city", commune.getCity(),
+                            "myLocation", myLocation
                     );
 
             IndexResponse indexResponse = restClient.index(indexRequest);

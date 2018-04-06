@@ -21,3 +21,5 @@ Base uri to access Jolokia endpoint: http://localhost:8090/admin/jolokia.<br>
 ### Websites of interest
 * https://www.elastic.co/guide/en/elasticsearch/client/java-rest/6.1/java-rest-high.html
 * https://jolokia.org/reference/html/protocol.html
+* https://www.elastic.co/elasticon/conf/2018/sf/the-state-of-geo-in-elasticsearch
+* https://www.elastic.co/elasticon/conf/2017/sf/what-is-evolving-in-elasticsearch

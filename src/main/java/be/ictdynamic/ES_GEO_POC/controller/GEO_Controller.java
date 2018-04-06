@@ -32,7 +32,7 @@ public class GEO_Controller extends BaseController {
     @Autowired
     private GEO_Service geoService;
 
-    @ApiOperation(value = "Method to process array of locations.", notes = "")
+    @ApiOperation(value = "Method to persist locations.", notes = "")
     @ApiResponses(value = {
             @ApiResponse(code = 201, message = "Created. The locations have been created.", response = PocResponse.class),
             @ApiResponse(code = 500, message = "Internal server error.", response = PocResponse.class) })
@@ -40,12 +40,25 @@ public class GEO_Controller extends BaseController {
             method = RequestMethod.POST,
             consumes = {MediaType.APPLICATION_JSON_VALUE},
             produces = {MediaType.APPLICATION_JSON_VALUE})
-    public ResponseEntity createLocation (@Valid @RequestBody(required = true) LocationRequest locationRequest) throws IllegalArgumentException, IOException {
-        locationService.processLocations(locationRequest);
-        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(new PocResponse(String.format("Number of locations created: %06d.", locationRequest.getLocations().size())));
+    public ResponseEntity persistLocations (@Valid @RequestBody(required = true) LocationRequest locationRequest) throws IllegalArgumentException, IOException {
+        locationService.persistLocations(locationRequest);
+        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(new PocResponse(String.format("Number of locations persisted: %06d.", locationRequest.getLocations().size())));
     }
 
-    @ApiOperation(value = "Generic Method to retrieve objects.", notes = "")
+    @ApiOperation(value = "Method to persist communes.", notes = "")
+    @ApiResponses(value = {
+            @ApiResponse(code = 201, message = "Created. The communes have been created.", response = PocResponse.class),
+            @ApiResponse(code = 500, message = "Internal server error.", response = PocResponse.class) })
+    @RequestMapping(value="/communes",
+            method = RequestMethod.POST,
+            consumes = {MediaType.APPLICATION_JSON_VALUE},
+            produces = {MediaType.APPLICATION_JSON_VALUE})
+    public ResponseEntity persistCommunes (@Valid @RequestBody(required = true) CommuneRequest communeRequest) throws IllegalArgumentException, IOException {
+        communeService.persistCommunes(communeRequest);
+        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(new PocResponse(String.format("Number of communes persisted: %06d.", communeRequest.getCommunes().size())));
+    }
+
+    @ApiOperation(value = "Generic Method to retrieve objects within certain distance.", notes = "")
     @RequestMapping(value="/retrieveObjects", method=RequestMethod.GET)
     public ResponseEntity<?> retrieveObjects(
             @RequestParam(value = "objectType", required = true) String objectType,
@@ -56,12 +69,7 @@ public class GEO_Controller extends BaseController {
         if (org.springframework.util.StringUtils.isEmpty(objectType)) {
             throw new IllegalArgumentException("queryParameterMap unknown");
         }
-        if ("location".equals(objectType)) {
-            return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(geoService.geoDistanceQueryLocation(objectType, lat, lon, distance));
-        }
-        else {
-            return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(geoService.geoDistanceQueryCommune(objectType, lat, lon, distance));
-        }
+        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(geoService.geoDistanceQuery(objectType, lat, lon, distance));
     }
 
     @ApiOperation(value = "Method to retrieve objects within bounding box.", notes = "")
@@ -78,19 +86,6 @@ public class GEO_Controller extends BaseController {
         corners[2] = bottom;
         corners[3] = right;
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(geoService.geoBoundingBoxQueryCommune(corners));
-    }
-
-    @ApiOperation(value = "Method to process array of communes.", notes = "")
-    @ApiResponses(value = {
-            @ApiResponse(code = 201, message = "Created. The communes have been created.", response = PocResponse.class),
-            @ApiResponse(code = 500, message = "Internal server error.", response = PocResponse.class) })
-    @RequestMapping(value="/communes",
-            method = RequestMethod.POST,
-            consumes = {MediaType.APPLICATION_JSON_VALUE},
-            produces = {MediaType.APPLICATION_JSON_VALUE})
-    public ResponseEntity createZip (@Valid @RequestBody(required = true) CommuneRequest communeRequest) throws IllegalArgumentException, IOException {
-        communeService.processCommunes(communeRequest);
-        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(new PocResponse(String.format("Number of communes created: %06d.", communeRequest.getCommunes().size())));
     }
 
 }

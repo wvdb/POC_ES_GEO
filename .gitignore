@@ -23,7 +23,4 @@ nbbuild/
 dist/
 nbdist/
 .nb-gradle/
-src/test/java/
 .gitignore
-pom.xml
-src/
