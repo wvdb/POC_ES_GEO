@@ -19,7 +19,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -89,11 +88,10 @@ public class Geo1Test {
 
         QueryBuilder query = QueryBuilders.matchAllQuery();
 
-        List<GeoPoint> points = new ArrayList<>();
-        points.add(new GeoPoint(51.383977,4.101346));
-        points.add(new GeoPoint(51.425098,5.156033));
-        points.add(new GeoPoint(50.714051,4.980252));
-        points.add(new GeoPoint(50.714051,3.958523));
+        List<GeoPoint> points = List.of(new GeoPoint(51.383977,4.101346),
+                                        new GeoPoint(51.425098,5.156033),
+                                        new GeoPoint(50.714051,4.980252),
+                                        new GeoPoint(50.714051,3.958523));
 
         QueryBuilder geoQueryBuilder = QueryBuilders.geoPolygonQuery("myLocation", points);
 
@@ -112,6 +110,40 @@ public class Geo1Test {
         }
 
     }
+
+//    @Test
+//    public void geoDistanceAggregation() throws IOException {
+//        SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
+//
+//        // https://www.elastic.co/guide/en/elasticsearch/client/java-rest/6.1/java-rest-high-search.html
+//
+//        TermsAggregationBuilder aggregation = AggregationBuilders.terms("my customers - breakdown by distance")
+//                .field("myLocation");
+//
+//        aggregation.subAggregation(AggregationBuilders.avg("average_age")
+//                .field("age"));
+//        sourceBuilder.aggregation(aggregation);
+//
+//
+//        GeoDistanceAggregationBuilder geoDistanceAggregationBuilder = new GeoDistanceAggregationBuilder("", new GeoPoint(51.383977,4.101346));
+//
+//        QueryBuilder query = QueryBuilders.matchAllQuery();
+//
+//        QueryBuilder finalQuery = QueryBuilders.boolQuery().must(query).filter(geoQueryBuilder);
+//
+//        sourceBuilder.query(finalQuery);
+//
+//        SearchRequest searchRequest = new SearchRequest("commune").source(sourceBuilder);
+//
+//        SearchResponse searchResponse = restClient.search(searchRequest);
+//
+//        SearchHits hits = searchResponse.getHits();
+//
+//        for (SearchHit hit : hits.getHits()) {
+//            getEventFromESHit(hit);
+//        }
+//
+//    }
 
     private static void getEventFromESHit(SearchHit hit) {
         Map<String,Object> source = hit.getSourceAsMap();

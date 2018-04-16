@@ -23,6 +23,7 @@ public class LocationService {
     @Autowired
     private RestHighLevelClient restClient;
 
+    @SuppressWarnings("unchecked")
     public void persistLocations(LocationRequest locationRequest) throws IllegalArgumentException, IOException {
         Date startDate = new Date();
 

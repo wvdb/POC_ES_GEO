@@ -76,6 +76,7 @@ public class GEO_Service {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("hit: id = {}", hit.getId());
             LOGGER.debug("hit: score = {}", hit.getScore());
+            LOGGER.debug("hit: sort value = {}", hit.getSortValues()[0]);
         }
 
         if ("location".equals(objectType)) {
@@ -95,6 +96,8 @@ public class GEO_Service {
             Map<String,Object> source = hit.getSourceAsMap();
 
             commune.setCity((String) source.get("city"));
+            //TODO : to clarify why sort values is an array and if we can simply take first element of array
+            commune.setDistance((double) hit.getSortValues()[0]);
             return (T) commune;
         }
     }

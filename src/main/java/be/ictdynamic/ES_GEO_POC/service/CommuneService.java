@@ -23,6 +23,7 @@ public class CommuneService {
     @Autowired
     private RestHighLevelClient restClient;
 
+    @SuppressWarnings("unchecked")
     public void persistCommunes(CommuneRequest communeRequest) throws IllegalArgumentException, IOException {
         Date startDate = new Date();
 
