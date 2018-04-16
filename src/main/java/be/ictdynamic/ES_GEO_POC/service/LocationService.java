@@ -57,8 +57,7 @@ public class LocationService {
             }
         }
 
-        IctDynamicUtilities.timedReturn(LOGGER, new Object() {
-        }.getClass().getEnclosingMethod().getName(), startDate.getTime());
+        IctDynamicUtilities.timedReturn(LOGGER, new Object() {}.getClass().getEnclosingMethod().getName(), startDate.getTime());
     }
 
 }
