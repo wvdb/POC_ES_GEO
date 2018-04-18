@@ -22,7 +22,7 @@ public class CommuneRequest {
         private String city;
         private String lng;
         private String lat;
-        private double distance;
+        private Double distance;
 
         public String getZip() {
             return zip;
@@ -56,11 +56,11 @@ public class CommuneRequest {
             this.lat = lat;
         }
 
-        public double getDistance() {
+        public Double getDistance() {
             return distance;
         }
 
-        public void setDistance(double distance) {
+        public void setDistance(Double distance) {
             this.distance = distance;
         }
     }

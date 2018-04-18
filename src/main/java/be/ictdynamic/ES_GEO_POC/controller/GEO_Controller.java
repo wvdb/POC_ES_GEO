@@ -9,6 +9,7 @@ import be.ictdynamic.ES_GEO_POC.service.LocationService;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import org.elasticsearch.common.geo.GeoPoint;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +21,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.validation.Valid;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 @Controller
 public class GEO_Controller extends BaseController {
@@ -72,9 +75,9 @@ public class GEO_Controller extends BaseController {
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(geoService.geoDistanceQuery(objectType, lat, lon, distance));
     }
 
-    @ApiOperation(value = "Method to retrieve objects within bounding box.", notes = "")
-    @RequestMapping(value="/retrieveObjectsWithinBoundingBox", method=RequestMethod.GET)
-    public ResponseEntity<?> retrieveObjectsWithinBoundingBox(
+    @ApiOperation(value = "Method to retrieve objects within Bounding Box.", notes = "")
+    @RequestMapping(value="/geoBoundingBoxQuery", method=RequestMethod.GET)
+    public ResponseEntity<?> geoBoundingBoxQuery(
             @RequestParam(value = "top", required = true)    double top,
             @RequestParam(value = "left", required = true)   double left,
             @RequestParam(value = "bottom", required = true) double bottom,
@@ -85,7 +88,22 @@ public class GEO_Controller extends BaseController {
         corners[1] = left;
         corners[2] = bottom;
         corners[3] = right;
-        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(geoService.geoBoundingBoxQueryCommune(corners));
+        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(geoService.geoBoundingBoxQuery(corners));
+    }
+
+    @ApiOperation(value = "Method to retrieve objects within Polygon.", notes = "Query parameter geoPoints is a collection of geoPoints(lat,lon) with _ as separator.")
+    @RequestMapping(value="/geoPolygonQuery", method=RequestMethod.GET)
+    public ResponseEntity<?> geoPolygonQuery(
+            @RequestParam(value = "geoPoints", required = true) String geoPointsAsString
+    ) throws Exception {
+        List<GeoPoint> geoPoints = new ArrayList<>();
+
+        String[] geoPointsArray = geoPointsAsString.split("_");
+        for (String geoPointAsString : geoPointsArray) {
+            GeoPoint geoPoint = new GeoPoint(Double.parseDouble(geoPointAsString.split(",")[0]), Double.parseDouble(geoPointAsString.split(",")[1]));
+            geoPoints.add(geoPoint);
+        }
+        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(geoService.geoPolygonQuery(geoPoints));
     }
 
 }

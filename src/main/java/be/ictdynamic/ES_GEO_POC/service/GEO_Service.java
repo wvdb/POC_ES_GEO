@@ -5,6 +5,7 @@ import be.ictdynamic.ES_GEO_POC.model.LocationRequest;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.common.geo.GeoPoint;
 import org.elasticsearch.common.unit.DistanceUnit;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
@@ -20,10 +21,7 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.util.Date;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static be.ictdynamic.ES_GEO_POC.service.IctDynamicUtilities.timedReturn;
 
@@ -76,7 +74,9 @@ public class GEO_Service {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("hit: id = {}", hit.getId());
             LOGGER.debug("hit: score = {}", hit.getScore());
-            LOGGER.debug("hit: sort value = {}", hit.getSortValues()[0]);
+            if (hit.getSortValues().length >= 1) {
+                LOGGER.debug("hit: sort value = {}", hit.getSortValues()[0]);
+            }
         }
 
         if ("location".equals(objectType)) {
@@ -96,13 +96,15 @@ public class GEO_Service {
             Map<String,Object> source = hit.getSourceAsMap();
 
             commune.setCity((String) source.get("city"));
-            //TODO : to clarify why sort values is an array and if we can simply take first element of array
-            commune.setDistance((double) hit.getSortValues()[0]);
+            if (hit.getSortValues().length >= 1) {
+                //TODO : to clarify why sort values is an array and if we can simply take first element of array
+                commune.setDistance((double) hit.getSortValues()[0]);
+            }
             return (T) commune;
         }
     }
 
-    public Set<CommuneRequest.Commune> geoBoundingBoxQueryCommune(double[] corners) throws IOException {
+    public Set<CommuneRequest.Commune> geoBoundingBoxQuery(double[] corners) throws IOException {
         Date startDate = new Date();
 
         Set<CommuneRequest.Commune> communes = new LinkedHashSet<>();
@@ -115,6 +117,34 @@ public class GEO_Service {
                 .setCorners(corners[0], corners[1], corners[2], corners[3]);
 
         QueryBuilder finalQuery = QueryBuilders.boolQuery().must(query).filter(geoDistanceQueryBuilder);
+
+        sourceBuilder.query(finalQuery).size(SIZE_ES_QUERY);
+
+        SearchRequest searchRequest = new SearchRequest("commune").source(sourceBuilder);
+
+        SearchResponse searchResponse = restClient.search(searchRequest);
+
+        SearchHits hits = searchResponse.getHits();
+
+        for (SearchHit hit : hits.getHits()) {
+            communes.add(GEO_Service.getObjectFromES_Hit(hit, "commune"));
+        }
+
+        return timedReturn(LOGGER, new Object() {}.getClass().getEnclosingMethod().getName(), startDate.getTime(), communes);
+    }
+
+    public Set<CommuneRequest.Commune> geoPolygonQuery(List<GeoPoint> geoPoints) throws IOException {
+        Date startDate = new Date();
+
+        Set<CommuneRequest.Commune> communes = new LinkedHashSet<>();
+        SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
+
+        QueryBuilder query = QueryBuilders.matchAllQuery();
+
+        QueryBuilder geoQueryBuilder = QueryBuilders
+                .geoPolygonQuery("myLocation", geoPoints);
+
+        QueryBuilder finalQuery = QueryBuilders.boolQuery().must(query).filter(geoQueryBuilder);
 
         sourceBuilder.query(finalQuery).size(SIZE_ES_QUERY);
 
