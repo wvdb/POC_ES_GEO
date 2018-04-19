@@ -1,8 +1,6 @@
 package be.ictdynamic.ES_GEO_POC.controller;
 
-import be.ictdynamic.ES_GEO_POC.model.CommuneRequest;
-import be.ictdynamic.ES_GEO_POC.model.LocationRequest;
-import be.ictdynamic.ES_GEO_POC.model.PocResponse;
+import be.ictdynamic.ES_GEO_POC.model.*;
 import be.ictdynamic.ES_GEO_POC.service.CommuneService;
 import be.ictdynamic.ES_GEO_POC.service.GEO_Service;
 import be.ictdynamic.ES_GEO_POC.service.LocationService;
@@ -61,6 +59,19 @@ public class GEO_Controller extends BaseController {
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(new PocResponse(String.format("Number of communes persisted: %06d.", communeRequest.getCommunes().size())));
     }
 
+    @ApiOperation(value = "Method to persist retail locations.", notes = "")
+    @ApiResponses(value = {
+            @ApiResponse(code = 201, message = "Created. The retail locations have been created.", response = PocResponse.class),
+            @ApiResponse(code = 500, message = "Internal server error.", response = PocResponse.class) })
+    @RequestMapping(value="/retailLocations",
+            method = RequestMethod.POST,
+            consumes = {MediaType.APPLICATION_JSON_VALUE},
+            produces = {MediaType.APPLICATION_JSON_VALUE})
+    public ResponseEntity persistRetailLocations (@Valid @RequestBody(required = true) RetailLocationsRequest retailLocationsRequest) throws IllegalArgumentException, IOException {
+        communeService.persistRetailLocations(retailLocationsRequest);
+        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(new PocResponse(String.format("Number of locations persisted: %06d.", retailLocationsRequest.getLocations().size())));
+    }
+
     @ApiOperation(value = "Generic Method to retrieve objects within certain distance.", notes = "")
     @RequestMapping(value="/retrieveObjects", method=RequestMethod.GET)
     public ResponseEntity<?> retrieveObjects(
@@ -104,6 +115,13 @@ public class GEO_Controller extends BaseController {
             geoPoints.add(geoPoint);
         }
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(geoService.geoPolygonQuery(geoPoints));
+    }
+
+    @ApiOperation(value = "Method to retrieve distance-aggregations.", notes = "")
+    @RequestMapping(value="/geoAggregation", method=RequestMethod.POST)
+    public ResponseEntity<?> geoAggregation(@RequestBody(required = true) GeoAggregationRequest geoAggregationRequest
+    ) throws Exception {
+        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(geoService.geoAggregation(geoAggregationRequest));
     }
 
 }

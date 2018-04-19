@@ -9,6 +9,9 @@ import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
+import org.elasticsearch.search.aggregations.bucket.range.GeoDistanceAggregationBuilder;
+import org.elasticsearch.search.aggregations.bucket.range.ParsedGeoDistance;
+import org.elasticsearch.search.aggregations.bucket.range.Range;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -53,7 +56,7 @@ public class Geo1Test {
         SearchHits hits = searchResponse.getHits();
 
         for (SearchHit hit : hits.getHits()) {
-            getEventFromESHit(hit);
+            logCityFromESHit(hit);
         }
 
     }
@@ -77,7 +80,7 @@ public class Geo1Test {
         SearchHits hits = searchResponse.getHits();
 
         for (SearchHit hit : hits.getHits()) {
-            getEventFromESHit(hit);
+            logCityFromESHit(hit);
         }
 
     }
@@ -106,46 +109,49 @@ public class Geo1Test {
         SearchHits hits = searchResponse.getHits();
 
         for (SearchHit hit : hits.getHits()) {
-            getEventFromESHit(hit);
+            logCityFromESHit(hit);
         }
 
     }
 
-//    @Test
-//    public void geoDistanceAggregation() throws IOException {
-//        SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
-//
-//        // https://www.elastic.co/guide/en/elasticsearch/client/java-rest/6.1/java-rest-high-search.html
-//
-//        TermsAggregationBuilder aggregation = AggregationBuilders.terms("my customers - breakdown by distance")
-//                .field("myLocation");
-//
-//        aggregation.subAggregation(AggregationBuilders.avg("average_age")
-//                .field("age"));
-//        sourceBuilder.aggregation(aggregation);
-//
-//
-//        GeoDistanceAggregationBuilder geoDistanceAggregationBuilder = new GeoDistanceAggregationBuilder("", new GeoPoint(51.383977,4.101346));
-//
-//        QueryBuilder query = QueryBuilders.matchAllQuery();
-//
-//        QueryBuilder finalQuery = QueryBuilders.boolQuery().must(query).filter(geoQueryBuilder);
-//
-//        sourceBuilder.query(finalQuery);
-//
-//        SearchRequest searchRequest = new SearchRequest("commune").source(sourceBuilder);
-//
-//        SearchResponse searchResponse = restClient.search(searchRequest);
-//
-//        SearchHits hits = searchResponse.getHits();
-//
-//        for (SearchHit hit : hits.getHits()) {
-//            getEventFromESHit(hit);
-//        }
-//
-//    }
+    @Test
+    public void geoDistanceAggregation() throws IOException {
+        SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
 
-    private static void getEventFromESHit(SearchHit hit) {
+        // https://www.elastic.co/guide/en/elasticsearch/client/java-rest/6.1/java-rest-high-search.html
+        // https://www.elastic.co/guide/en/elasticsearch/client/java-api/current/_bucket_aggregations.html
+
+        GeoDistanceAggregationBuilder geoDistanceAggregationBuilder = new GeoDistanceAggregationBuilder("distanceRanges", new GeoPoint(51.152981, 4.455599));
+        GeoDistanceAggregationBuilder.Range[] rangesOfCustomers = new GeoDistanceAggregationBuilder.Range[3];
+        rangesOfCustomers[0] = new GeoDistanceAggregationBuilder.Range("distanceRange 0", (double) 0, (double) 10);
+        rangesOfCustomers[1] = new GeoDistanceAggregationBuilder.Range("distanceRange 1", (double) 10, (double) 25);
+        rangesOfCustomers[2] = new GeoDistanceAggregationBuilder.Range("distanceRange 2", (double) 25, (double) 100);
+
+        geoDistanceAggregationBuilder.addRange(rangesOfCustomers[0]);
+        geoDistanceAggregationBuilder.addRange(rangesOfCustomers[1]);
+        geoDistanceAggregationBuilder.addRange(rangesOfCustomers[2]);
+
+        geoDistanceAggregationBuilder.field("myLocation");
+        geoDistanceAggregationBuilder.keyed(true);
+        geoDistanceAggregationBuilder.unit(DistanceUnit.KILOMETERS);
+
+        sourceBuilder.aggregation(geoDistanceAggregationBuilder);
+
+        SearchRequest searchRequest = new SearchRequest("commune").source(sourceBuilder);
+
+        SearchResponse searchResponse = restClient.search(searchRequest);
+
+        ParsedGeoDistance parsedGeoDistance = searchResponse.getAggregations().get("distanceRanges");
+
+        for (Range.Bucket entry : parsedGeoDistance.getBuckets()) {
+            String key = entry.getKeyAsString();            // bucket key
+            long docCount = entry.getDocCount();            // doc count
+            System.out.println("key = " + key + ", doc_count = " + docCount);
+        }
+
+    }
+
+    private static void logCityFromESHit(SearchHit hit) {
         Map<String,Object> source = hit.getSourceAsMap();
         System.out.println("City = " + source.get("city"));
     }

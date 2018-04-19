@@ -7,7 +7,8 @@
 		"53ff8bc4-90c0-c76a-3d1c-9b0b975b9dd3",
 		"1cf86371-deb8-6f2e-8c30-4e834dc2a4d6",
 		"95b8b21c-3169-377e-2e3a-679055fd0a63",
-		"e3b2b74b-27fc-f9b0-6e6f-7071c67d7529"
+		"e3b2b74b-27fc-f9b0-6e6f-7071c67d7529",
+		"f29f74a1-1570-9cdf-87fa-c23eb50c9a8e"
 	],
 	"folders": [],
 	"folders_order": [],
@@ -204,33 +205,33 @@
 					"enabled": true
 				}
 			],
-			"url": "http://localhost:8090/retrieveObjectsWithinBoundingBox?top=50.920845&left=4.253967&bottom=50.787334&right=4.521758",
+			"url": "http://localhost:8090/geoBoundingBoxQuery?top=51.24&left=3.50&bottom=50.90&right=4.57",
 			"folder": null,
 			"queryParams": [
 				{
 					"key": "top",
-					"value": "50.920845",
+					"value": "51.24",
 					"equals": true,
 					"description": "",
 					"enabled": true
 				},
 				{
 					"key": "left",
-					"value": "4.253967",
+					"value": "3.50",
 					"equals": true,
 					"description": "",
 					"enabled": true
 				},
 				{
 					"key": "bottom",
-					"value": "50.787334",
+					"value": "50.90",
 					"equals": true,
 					"description": "",
 					"enabled": true
 				},
 				{
 					"key": "right",
-					"value": "4.521758",
+					"value": "4.57",
 					"equals": true,
 					"description": "",
 					"enabled": true
@@ -245,8 +246,46 @@
 			"tests": null,
 			"currentHelper": "normal",
 			"helperAttributes": {},
-			"time": 1522994157868,
+			"time": 1524056880527,
 			"name": "GEO Bounding Box",
+			"description": null,
+			"collectionId": "30e48817-7e99-f250-6e1c-dbb43e699762",
+			"responses": [],
+			"rawModeData": "{\r\n    \"query\": {\r\n        \"bool\" : {\r\n            \"must\" : {\r\n                \"match_all\" : {}\r\n            },\r\n            \"filter\" : {\r\n                \"twitter_location\" : {\r\n                    \"distance\" : \"10miles\",\r\n                    \"location\" : [31.131,29.976]\r\n                }\r\n            }\r\n        }\r\n    }\r\n}"
+		},
+		{
+			"id": "f29f74a1-1570-9cdf-87fa-c23eb50c9a8e",
+			"headers": "Content-Type: application/json\n",
+			"headerData": [
+				{
+					"key": "Content-Type",
+					"value": "application/json",
+					"description": "",
+					"enabled": true
+				}
+			],
+			"url": "http://localhost:8090/geoPolygonQuery?geoPoints=51.383977,4.101346_51.425098,5.156033_50.714051,4.980252_50.714051,3.958523",
+			"folder": null,
+			"queryParams": [
+				{
+					"key": "geoPoints",
+					"value": "51.383977,4.101346_51.425098,5.156033_50.714051,4.980252_50.714051,3.958523",
+					"equals": true,
+					"description": "",
+					"enabled": true
+				}
+			],
+			"preRequestScript": null,
+			"pathVariables": {},
+			"pathVariableData": [],
+			"method": "GET",
+			"data": [],
+			"dataMode": "raw",
+			"tests": null,
+			"currentHelper": "normal",
+			"helperAttributes": {},
+			"time": 1524051997371,
+			"name": "GEO Polygon",
 			"description": null,
 			"collectionId": "30e48817-7e99-f250-6e1c-dbb43e699762",
 			"responses": [],

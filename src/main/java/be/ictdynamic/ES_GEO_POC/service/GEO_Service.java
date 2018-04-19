@@ -1,6 +1,7 @@
 package be.ictdynamic.ES_GEO_POC.service;
 
 import be.ictdynamic.ES_GEO_POC.model.CommuneRequest;
+import be.ictdynamic.ES_GEO_POC.model.GeoAggregationRequest;
 import be.ictdynamic.ES_GEO_POC.model.LocationRequest;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
@@ -11,6 +12,9 @@ import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
+import org.elasticsearch.search.aggregations.bucket.range.GeoDistanceAggregationBuilder;
+import org.elasticsearch.search.aggregations.bucket.range.ParsedGeoDistance;
+import org.elasticsearch.search.aggregations.bucket.range.Range;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.sort.SortBuilders;
 import org.elasticsearch.search.sort.SortOrder;
@@ -160,5 +164,43 @@ public class GEO_Service {
 
         return timedReturn(LOGGER, new Object() {}.getClass().getEnclosingMethod().getName(), startDate.getTime(), communes);
     }
+
+    public Map<String, Long> geoAggregation(GeoAggregationRequest geoAggregationRequest) throws IOException {
+        Map<String, Long> aggregations = new LinkedHashMap<>();
+
+        SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
+
+        // https://www.elastic.co/guide/en/elasticsearch/client/java-rest/6.1/java-rest-high-search.html
+        // https://www.elastic.co/guide/en/elasticsearch/client/java-api/current/_bucket_aggregations.html
+
+        GeoDistanceAggregationBuilder geoDistanceAggregationBuilder = new GeoDistanceAggregationBuilder("distanceRanges", new GeoPoint(geoAggregationRequest.getLat(), geoAggregationRequest.getLon()));
+
+        for (GeoAggregationRequest.Range range : geoAggregationRequest.getRanges()) {
+            GeoDistanceAggregationBuilder.Range geoRange = new GeoDistanceAggregationBuilder.Range(range.getKey(), range.getFrom(), range.getTo());
+            geoDistanceAggregationBuilder.addRange(geoRange);
+        }
+
+        geoDistanceAggregationBuilder.field("location");
+        // Setting the keyed flag to true will associate a unique string key with each bucket and return the ranges as a hash rather than an array
+        geoDistanceAggregationBuilder.keyed(true);
+        geoDistanceAggregationBuilder.unit(DistanceUnit.KILOMETERS);
+
+        sourceBuilder.aggregation(geoDistanceAggregationBuilder);
+
+        SearchRequest searchRequest = new SearchRequest("retail_locations").source(sourceBuilder);
+
+        SearchResponse searchResponse = restClient.search(searchRequest);
+
+        ParsedGeoDistance parsedGeoDistance = searchResponse.getAggregations().get("distanceRanges");
+
+        for (Range.Bucket entry : parsedGeoDistance.getBuckets()) {
+            String key = entry.getKeyAsString();            // bucket key
+            long docCount = entry.getDocCount();            // doc count
+            aggregations.put(key, docCount);
+        }
+
+        return aggregations;
+    }
+
 
 }
