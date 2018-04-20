@@ -1,9 +1,8 @@
 package be.ictdynamic.ES_GEO_POC.controller;
 
 import be.ictdynamic.ES_GEO_POC.model.*;
-import be.ictdynamic.ES_GEO_POC.service.CommuneService;
+import be.ictdynamic.ES_GEO_POC.service.ESPersistService;
 import be.ictdynamic.ES_GEO_POC.service.GEO_Service;
-import be.ictdynamic.ES_GEO_POC.service.LocationService;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
@@ -24,11 +23,8 @@ import java.util.List;
 
 @Controller
 public class GEO_Controller extends BaseController {
-	@Autowired
-	private LocationService locationService;
-
     @Autowired
-    private CommuneService communeService;
+    private ESPersistService elastSearchPersistService;
 
     @Autowired
     private GEO_Service geoService;
@@ -42,7 +38,7 @@ public class GEO_Controller extends BaseController {
             consumes = {MediaType.APPLICATION_JSON_VALUE},
             produces = {MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity persistLocations (@Valid @RequestBody(required = true) LocationRequest locationRequest) throws IllegalArgumentException, IOException {
-        locationService.persistLocations(locationRequest);
+        elastSearchPersistService.persistLocations(locationRequest);
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(new PocResponse(String.format("Number of locations persisted: %06d.", locationRequest.getLocations().size())));
     }
 
@@ -55,7 +51,7 @@ public class GEO_Controller extends BaseController {
             consumes = {MediaType.APPLICATION_JSON_VALUE},
             produces = {MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity persistCommunes (@Valid @RequestBody(required = true) CommuneRequest communeRequest) throws IllegalArgumentException, IOException {
-        communeService.persistCommunes(communeRequest);
+        elastSearchPersistService.persistCommunes(communeRequest);
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(new PocResponse(String.format("Number of communes persisted: %06d.", communeRequest.getCommunes().size())));
     }
 
@@ -68,13 +64,15 @@ public class GEO_Controller extends BaseController {
             consumes = {MediaType.APPLICATION_JSON_VALUE},
             produces = {MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity persistRetailLocations (@Valid @RequestBody(required = true) RetailLocationsRequest retailLocationsRequest) throws IllegalArgumentException, IOException {
-        communeService.persistRetailLocations(retailLocationsRequest);
+        elastSearchPersistService.persistRetailLocations(retailLocationsRequest);
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(new PocResponse(String.format("Number of locations persisted: %06d.", retailLocationsRequest.getLocations().size())));
     }
 
     @ApiOperation(value = "Generic Method to retrieve objects within certain distance.", notes = "")
     @RequestMapping(value="/retrieveObjects", method=RequestMethod.GET)
     public ResponseEntity<?> retrieveObjects(
+            @RequestParam(value = "index", required = true) String index,
+            @RequestParam(value = "nameGeoPointField", required = true) String nameGeoPointField,
             @RequestParam(value = "objectType", required = true) String objectType,
             @RequestParam(value = "lat", required = true) double lat,
             @RequestParam(value = "lon", required = true) double lon,
@@ -83,7 +81,7 @@ public class GEO_Controller extends BaseController {
         if (org.springframework.util.StringUtils.isEmpty(objectType)) {
             throw new IllegalArgumentException("queryParameterMap unknown");
         }
-        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(geoService.geoDistanceQuery(objectType, lat, lon, distance));
+        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(geoService.geoDistanceQuery(index, nameGeoPointField, objectType, lat, lon, distance));
     }
 
     @ApiOperation(value = "Method to retrieve objects within Bounding Box.", notes = "")
@@ -104,9 +102,7 @@ public class GEO_Controller extends BaseController {
 
     @ApiOperation(value = "Method to retrieve objects within Polygon.", notes = "Query parameter geoPoints is a collection of geoPoints(lat,lon) with _ as separator.")
     @RequestMapping(value="/geoPolygonQuery", method=RequestMethod.GET)
-    public ResponseEntity<?> geoPolygonQuery(
-            @RequestParam(value = "geoPoints", required = true) String geoPointsAsString
-    ) throws Exception {
+    public ResponseEntity<?> geoPolygonQuery(@RequestParam(value = "geoPoints", required = true) String geoPointsAsString) throws Exception {
         List<GeoPoint> geoPoints = new ArrayList<>();
 
         String[] geoPointsArray = geoPointsAsString.split("_");
@@ -119,8 +115,7 @@ public class GEO_Controller extends BaseController {
 
     @ApiOperation(value = "Method to retrieve distance-aggregations.", notes = "")
     @RequestMapping(value="/geoAggregation", method=RequestMethod.POST)
-    public ResponseEntity<?> geoAggregation(@RequestBody(required = true) GeoAggregationRequest geoAggregationRequest
-    ) throws Exception {
+    public ResponseEntity<?> geoAggregation(@RequestBody(required = true) GeoAggregationRequest geoAggregationRequest) throws Exception {
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(geoService.geoAggregation(geoAggregationRequest));
     }
 

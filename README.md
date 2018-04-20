@@ -28,3 +28,5 @@ Base uri to access Jolokia endpoint: http://localhost:8090/admin/jolokia.<br>
 * https://jolokia.org/reference/html/protocol.html
 * https://www.elastic.co/elasticon/conf/2018/sf/the-state-of-geo-in-elasticsearch
 * https://www.elastic.co/elasticon/conf/2017/sf/what-is-evolving-in-elasticsearch
+* https://www.latlong.net/Show-Latitude-Longitude.html
+* https://www.google.com/fusiontables/DataSource?docid=12Yp5H2L-W0VrHC68V4wG7DFgariZ26f5bRXIo5NB

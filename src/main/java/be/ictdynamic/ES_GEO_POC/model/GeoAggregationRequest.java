@@ -1,11 +1,11 @@
 package be.ictdynamic.ES_GEO_POC.model;
 
-import java.util.Set;
+import java.util.LinkedHashSet;
 
 public class GeoAggregationRequest {
     private double lat;
     private double lon;
-    private Set<Range> ranges;
+    private LinkedHashSet<Range> ranges;
 
     public double getLat() {
         return lat;
@@ -23,11 +23,11 @@ public class GeoAggregationRequest {
         this.lon = lon;
     }
 
-    public Set<Range> getRanges() {
+    public LinkedHashSet<Range> getRanges() {
         return ranges;
     }
 
-    public void setRanges(Set<Range> ranges) {
+    public void setRanges(LinkedHashSet<Range> ranges) {
         this.ranges = ranges;
     }
 

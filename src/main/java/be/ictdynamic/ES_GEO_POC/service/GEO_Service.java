@@ -3,6 +3,7 @@ package be.ictdynamic.ES_GEO_POC.service;
 import be.ictdynamic.ES_GEO_POC.model.CommuneRequest;
 import be.ictdynamic.ES_GEO_POC.model.GeoAggregationRequest;
 import be.ictdynamic.ES_GEO_POC.model.LocationRequest;
+import be.ictdynamic.ES_GEO_POC.model.RetailLocationsRequest;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RestHighLevelClient;
@@ -40,7 +41,7 @@ public class GEO_Service {
     @Autowired
     private RestHighLevelClient restClient;
 
-    public Set<?> geoDistanceQuery(String objectType, double lat, double lon, int distance) throws IOException {
+    public Set<?> geoDistanceQuery(String index, String nameGeoPointField, String objectType, double lat, double lon, int distance) throws IOException {
         Date startDate = new Date();
 
         Set<?> objectsWithinDistance = new LinkedHashSet<>();
@@ -49,7 +50,7 @@ public class GEO_Service {
         QueryBuilder query = QueryBuilders.matchAllQuery();
 
         QueryBuilder geoDistanceQueryBuilder = QueryBuilders
-                .geoDistanceQuery("myLocation")
+                .geoDistanceQuery(nameGeoPointField)
                 .point(lat, lon)
                 .distance(distance, DistanceUnit.KILOMETERS);
 
@@ -57,8 +58,8 @@ public class GEO_Service {
 
         sourceBuilder.query(finalQuery).size(SIZE_ES_QUERY);
 
-        SearchRequest searchRequest = new SearchRequest(objectType)
-                .source(sourceBuilder.sort(SortBuilders.geoDistanceSort("myLocation", lat, lon)
+        SearchRequest searchRequest = new SearchRequest(index)
+                .source(sourceBuilder.sort(SortBuilders.geoDistanceSort(nameGeoPointField, lat, lon)
                         .order(SortOrder.ASC)
                         .unit(DistanceUnit.KILOMETERS)));
 
@@ -83,29 +84,39 @@ public class GEO_Service {
             }
         }
 
-        if ("location".equals(objectType)) {
-            LocationRequest.Location location = new LocationRequest.Location();
+        Map<String, Object> source = hit.getSourceAsMap();
 
-            Map<String, Object> source = hit.getSourceAsMap();
+        switch(objectType) {
+            case "location":
+                LocationRequest.Location location = new LocationRequest.Location();
 
-            location.setId((String) source.get("id"));
-            location.setName((String) source.get("name"));
-            location.setObjectId((String) source.get("objectId"));
-            location.setScore(hit.getScore());
-            return (T) location;
+                location.setId((String) source.get("id"));
+                location.setName((String) source.get("name"));
+                location.setObjectId((String) source.get("objectId"));
+                location.setScore(hit.getScore());
+                return (T) location;
+            case "commune":
+                CommuneRequest.Commune commune = new CommuneRequest.Commune();
+
+                commune.setCity((String) source.get("city"));
+                if (hit.getSortValues().length >= 1) {
+                    //TODO : to clarify why sort values is an array and if we can simply take first element of array
+                    if (hit.getSortValues().length >= 1) {
+                        commune.setDistance((double) hit.getSortValues()[0]);
+                    }
+                }
+                return (T) commune;
+            case "retailer":
+                RetailLocationsRequest.Location retailLocation = new RetailLocationsRequest.Location();
+
+                retailLocation.setAddress((String) source.get("address"));
+                retailLocation.setDescription((String) source.get("description"));
+                return (T) retailLocation;
+            default:
+                LOGGER.error("invalid objectType: this objectType is currently not supported.");
+                return null;
         }
-        else {
-            CommuneRequest.Commune commune = new CommuneRequest.Commune();
 
-            Map<String,Object> source = hit.getSourceAsMap();
-
-            commune.setCity((String) source.get("city"));
-            if (hit.getSortValues().length >= 1) {
-                //TODO : to clarify why sort values is an array and if we can simply take first element of array
-                commune.setDistance((double) hit.getSortValues()[0]);
-            }
-            return (T) commune;
-        }
     }
 
     public Set<CommuneRequest.Commune> geoBoundingBoxQuery(double[] corners) throws IOException {
