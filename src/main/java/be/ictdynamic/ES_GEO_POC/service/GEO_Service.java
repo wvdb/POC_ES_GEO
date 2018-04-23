@@ -119,61 +119,61 @@ public class GEO_Service {
 
     }
 
-    public Set<CommuneRequest.Commune> geoBoundingBoxQuery(double[] corners) throws IOException {
+    public Set<RetailLocationsRequest.Location> geoBoundingBoxQuery(double[] corners) throws IOException {
         Date startDate = new Date();
 
-        Set<CommuneRequest.Commune> communes = new LinkedHashSet<>();
-        SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
-
-        QueryBuilder query = QueryBuilders.matchAllQuery();
-
-        QueryBuilder geoDistanceQueryBuilder = QueryBuilders
-                .geoBoundingBoxQuery("myLocation")
-                .setCorners(corners[0], corners[1], corners[2], corners[3]);
-
-        QueryBuilder finalQuery = QueryBuilders.boolQuery().must(query).filter(geoDistanceQueryBuilder);
-
-        sourceBuilder.query(finalQuery).size(SIZE_ES_QUERY);
-
-        SearchRequest searchRequest = new SearchRequest("commune").source(sourceBuilder);
-
-        SearchResponse searchResponse = restClient.search(searchRequest);
-
-        SearchHits hits = searchResponse.getHits();
-
-        for (SearchHit hit : hits.getHits()) {
-            communes.add(GEO_Service.getObjectFromES_Hit(hit, "commune"));
-        }
-
-        return timedReturn(LOGGER, new Object() {}.getClass().getEnclosingMethod().getName(), startDate.getTime(), communes);
-    }
-
-    public Set<CommuneRequest.Commune> geoPolygonQuery(List<GeoPoint> geoPoints) throws IOException {
-        Date startDate = new Date();
-
-        Set<CommuneRequest.Commune> communes = new LinkedHashSet<>();
+        Set<RetailLocationsRequest.Location> locations = new LinkedHashSet<>();
         SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
 
         QueryBuilder query = QueryBuilders.matchAllQuery();
 
         QueryBuilder geoQueryBuilder = QueryBuilders
-                .geoPolygonQuery("myLocation", geoPoints);
+                .geoBoundingBoxQuery("location")
+                .setCorners(corners[0], corners[1], corners[2], corners[3]);
 
         QueryBuilder finalQuery = QueryBuilders.boolQuery().must(query).filter(geoQueryBuilder);
 
         sourceBuilder.query(finalQuery).size(SIZE_ES_QUERY);
 
-        SearchRequest searchRequest = new SearchRequest("commune").source(sourceBuilder);
+        SearchRequest searchRequest = new SearchRequest("retail_locations").source(sourceBuilder);
 
         SearchResponse searchResponse = restClient.search(searchRequest);
 
         SearchHits hits = searchResponse.getHits();
 
         for (SearchHit hit : hits.getHits()) {
-            communes.add(GEO_Service.getObjectFromES_Hit(hit, "commune"));
+            locations.add(GEO_Service.getObjectFromES_Hit(hit, "retailer"));
         }
 
-        return timedReturn(LOGGER, new Object() {}.getClass().getEnclosingMethod().getName(), startDate.getTime(), communes);
+        return timedReturn(LOGGER, new Object() {}.getClass().getEnclosingMethod().getName(), startDate.getTime(), locations);
+    }
+
+    public Set<RetailLocationsRequest.Location> geoPolygonQuery(List<GeoPoint> geoPoints) throws IOException {
+        Date startDate = new Date();
+
+        Set<RetailLocationsRequest.Location> locations = new LinkedHashSet<>();
+        SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
+
+        QueryBuilder query = QueryBuilders.matchAllQuery();
+
+        QueryBuilder geoQueryBuilder = QueryBuilders
+                .geoPolygonQuery("location", geoPoints);
+
+        QueryBuilder finalQuery = QueryBuilders.boolQuery().must(query).filter(geoQueryBuilder);
+
+        sourceBuilder.query(finalQuery).size(SIZE_ES_QUERY);
+
+        SearchRequest searchRequest = new SearchRequest("retail_locations").source(sourceBuilder);
+
+        SearchResponse searchResponse = restClient.search(searchRequest);
+
+        SearchHits hits = searchResponse.getHits();
+
+        for (SearchHit hit : hits.getHits()) {
+            locations.add(GEO_Service.getObjectFromES_Hit(hit, "retailer"));
+        }
+
+        return timedReturn(LOGGER, new Object() {}.getClass().getEnclosingMethod().getName(), startDate.getTime(), locations);
     }
 
     public Map<String, Long> geoAggregation(GeoAggregationRequest geoAggregationRequest) throws IOException {
