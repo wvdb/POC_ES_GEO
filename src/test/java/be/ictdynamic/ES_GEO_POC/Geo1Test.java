@@ -30,7 +30,7 @@ import java.util.Map;
  */
 @TestPropertySource(value = {"classpath:/application.properties"})
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = ESTestApplication.class)
+@SpringBootTest(classes = Application.class)
 @WebAppConfiguration
 public class Geo1Test {
     @Autowired

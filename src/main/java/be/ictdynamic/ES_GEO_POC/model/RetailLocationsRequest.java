@@ -59,6 +59,25 @@ public class RetailLocationsRequest {
         public String toString() {
             return "Location{" + "address='" + address + '\'' + ", description='" + description + '\'' + ", lat='" + lat + '\'' + ", lon='" + lon + '\'' + '}';
         }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (!(o instanceof Location)) {
+                return false;
+            }
+
+            Location location = (Location) o;
+
+            return address != null ? address.equals(location.address) : location.address == null;
+        }
+
+        @Override
+        public int hashCode() {
+            return address != null ? address.hashCode() : 0;
+        }
     }
 
 }

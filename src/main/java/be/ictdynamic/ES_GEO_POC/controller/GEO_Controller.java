@@ -10,18 +10,14 @@ import org.elasticsearch.common.geo.GeoPoint;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-@Controller
+@RestController
 public class GEO_Controller extends BaseController {
     @Autowired
     private ESPersistService elastSearchPersistService;
@@ -87,6 +83,7 @@ public class GEO_Controller extends BaseController {
     @ApiOperation(value = "Method to retrieve objects within Bounding Box.", notes = "")
     @RequestMapping(value="/geoBoundingBoxQuery", method=RequestMethod.GET)
     public ResponseEntity<?> geoBoundingBoxQuery(
+            @RequestParam(value = "objectType", required = true)    String objectType,
             @RequestParam(value = "top", required = true)    double top,
             @RequestParam(value = "left", required = true)   double left,
             @RequestParam(value = "bottom", required = true) double bottom,
@@ -97,7 +94,7 @@ public class GEO_Controller extends BaseController {
         corners[1] = left;
         corners[2] = bottom;
         corners[3] = right;
-        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(geoService.geoBoundingBoxQuery(corners));
+        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(geoService.geoBoundingBoxQuery(objectType, corners));
     }
 
     @ApiOperation(value = "Method to retrieve objects within Polygon.", notes = "Query parameter geoPoints is a collection of geoPoints(lat,lon) with _ as separator.")

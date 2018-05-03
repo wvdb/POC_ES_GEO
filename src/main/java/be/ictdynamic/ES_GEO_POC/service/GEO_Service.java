@@ -22,6 +22,7 @@ import org.elasticsearch.search.sort.SortOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Component;
 
@@ -40,6 +41,13 @@ public class GEO_Service {
 
     @Autowired
     private RestHighLevelClient restClient;
+
+    @Value("#{${app.metaData}}")
+    private Map<String,String> metaData;
+//    public Map<String, String> metaData = Map.of("retailer.indexFieldName",     "location"
+//                                               , "retailer.indexName",          "retail_locations"
+//                                               , "commune.indexFieldName",      "myLocation"
+//                                               , "commune.indexName",           "commune");
 
     public Set<?> geoDistanceQuery(String index, String nameGeoPointField, String objectType, double lat, double lon, int distance) throws IOException {
         Date startDate = new Date();
@@ -119,30 +127,35 @@ public class GEO_Service {
 
     }
 
-    public Set<RetailLocationsRequest.Location> geoBoundingBoxQuery(double[] corners) throws IOException {
+    public Set<?> geoBoundingBoxQuery(String objectType, double[] corners) throws IOException {
         Date startDate = new Date();
 
-        Set<RetailLocationsRequest.Location> locations = new LinkedHashSet<>();
+        if (metaData.get(objectType + ".indexFieldName") == null ||
+            metaData.get(objectType + ".indexName") == null) {
+            throw new IllegalArgumentException(String.format("No metadata found for objectType %s.", objectType));
+        }
+
+        Set<?> locations = new LinkedHashSet<>();
         SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
 
         QueryBuilder query = QueryBuilders.matchAllQuery();
 
         QueryBuilder geoQueryBuilder = QueryBuilders
-                .geoBoundingBoxQuery("location")
+                .geoBoundingBoxQuery(metaData.get(objectType + ".indexFieldName"))
                 .setCorners(corners[0], corners[1], corners[2], corners[3]);
 
         QueryBuilder finalQuery = QueryBuilders.boolQuery().must(query).filter(geoQueryBuilder);
 
         sourceBuilder.query(finalQuery).size(SIZE_ES_QUERY);
 
-        SearchRequest searchRequest = new SearchRequest("retail_locations").source(sourceBuilder);
+        SearchRequest searchRequest = new SearchRequest(metaData.get(objectType + ".indexName")).source(sourceBuilder);
 
         SearchResponse searchResponse = restClient.search(searchRequest);
 
         SearchHits hits = searchResponse.getHits();
 
         for (SearchHit hit : hits.getHits()) {
-            locations.add(GEO_Service.getObjectFromES_Hit(hit, "retailer"));
+            locations.add(GEO_Service.getObjectFromES_Hit(hit, objectType));
         }
 
         return timedReturn(LOGGER, new Object() {}.getClass().getEnclosingMethod().getName(), startDate.getTime(), locations);
