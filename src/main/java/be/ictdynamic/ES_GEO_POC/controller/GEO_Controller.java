@@ -16,6 +16,7 @@ import javax.validation.Valid;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 public class GEO_Controller extends BaseController {
@@ -99,14 +100,18 @@ public class GEO_Controller extends BaseController {
 
     @ApiOperation(value = "Method to retrieve objects within Polygon.", notes = "Query parameter geoPoints is a collection of geoPoints(lat,lon) with _ as separator.")
     @RequestMapping(value="/geoPolygonQuery", method=RequestMethod.GET)
-    public ResponseEntity<?> geoPolygonQuery(@RequestParam(value = "geoPoints", required = true) String geoPointsAsString) throws Exception {
+    public ResponseEntity<?> geoPolygonQuery(@RequestParam Map<String, String> geoPointsAsMap) throws Exception {
         List<GeoPoint> geoPoints = new ArrayList<>();
-
-        String[] geoPointsArray = geoPointsAsString.split("_");
-        for (String geoPointAsString : geoPointsArray) {
-            GeoPoint geoPoint = new GeoPoint(Double.parseDouble(geoPointAsString.split(",")[0]), Double.parseDouble(geoPointAsString.split(",")[1]));
+//
+//        String[] geoPointsArray = geoPointsAsString.split("_");
+//        for (String geoPointAsString : geoPointsArray) {
+//            GeoPoint geoPoint = new GeoPoint(Double.parseDouble(geoPointAsString.split(",")[0]), Double.parseDouble(geoPointAsString.split(",")[1]));
+//            geoPoints.add(geoPoint);
+//        }
+        geoPointsAsMap.forEach((key, value) -> {
+            GeoPoint geoPoint = new GeoPoint(Double.parseDouble(key), Double.parseDouble(value));
             geoPoints.add(geoPoint);
-        }
+        });
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(geoService.geoPolygonQuery(geoPoints));
     }
 
