@@ -52,7 +52,7 @@ public class GEO_Service {
     public Set<?> geoDistanceQuery(String index, String nameGeoPointField, String objectType, double lat, double lon, int distance) throws IOException {
         Date startDate = new Date();
 
-        Set<?> objectsWithinDistance = new LinkedHashSet<>();
+        Set<Object> objectsWithinDistance = new LinkedHashSet<>();
         SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
 
         QueryBuilder query = QueryBuilders.matchAllQuery();
@@ -135,7 +135,7 @@ public class GEO_Service {
             throw new IllegalArgumentException(String.format("No metadata found for objectType %s.", objectType));
         }
 
-        Set<?> locations = new LinkedHashSet<>();
+        Set<Object> locations = new LinkedHashSet<>();
         SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
 
         QueryBuilder query = QueryBuilders.matchAllQuery();

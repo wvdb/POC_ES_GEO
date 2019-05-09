@@ -31,3 +31,5 @@ Base uri to access Jolokia endpoint: http://localhost:8090/admin/jolokia.<br>
 * https://www.latlong.net/Show-Latitude-Longitude.html
 * https://www.google.com/fusiontables/DataSource?docid=12Yp5H2L-W0VrHC68V4wG7DFgariZ26f5bRXIo5NB
 * http://www.headwallphotonics.com/polygon-tool
+* https://www.keene.edu/campus/maps/tool/
+* https://medium.com/criciumadev/its-time-migrating-to-java-11-5eb3868354f9

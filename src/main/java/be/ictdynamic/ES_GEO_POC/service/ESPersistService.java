@@ -16,6 +16,8 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.util.Date;
 
+import static be.ictdynamic.ES_GEO_POC.service.IctDynamicUtilities.timedReturn;
+
 @Component
 @PropertySource(value = {"classpath:/application.properties"}, ignoreResourceNotFound = true)
 public class ESPersistService {
@@ -55,7 +57,7 @@ public class ESPersistService {
             }
         }
 
-        IctDynamicUtilities.timedReturn(LOGGER, new Object() {}.getClass().getEnclosingMethod().getName(), startDate.getTime());
+        timedReturn(LOGGER, new Object() {}.getClass().getEnclosingMethod().getName(), startDate.getTime());
     }
 
     @SuppressWarnings("unchecked")
@@ -85,7 +87,7 @@ public class ESPersistService {
             }
         }
 
-        IctDynamicUtilities.timedReturn(LOGGER, new Object() {}.getClass().getEnclosingMethod().getName(), startDate.getTime());
+        timedReturn(LOGGER, new Object() {}.getClass().getEnclosingMethod().getName(), startDate.getTime());
     }
 
     @SuppressWarnings("unchecked")
@@ -122,7 +124,7 @@ public class ESPersistService {
             }
         }
 
-        IctDynamicUtilities.timedReturn(LOGGER, new Object() {}.getClass().getEnclosingMethod().getName(), startDate.getTime());
+        timedReturn(LOGGER, new Object() {}.getClass().getEnclosingMethod().getName(), startDate.getTime());
     }
 
 }
