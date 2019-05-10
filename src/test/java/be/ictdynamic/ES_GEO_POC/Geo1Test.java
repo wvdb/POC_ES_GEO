@@ -2,6 +2,7 @@ package be.ictdynamic.ES_GEO_POC;
 
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.common.geo.GeoPoint;
 import org.elasticsearch.common.unit.DistanceUnit;
@@ -51,7 +52,7 @@ public class Geo1Test {
 
         SearchRequest searchRequest = new SearchRequest("commune").source(sourceBuilder);
 
-        SearchResponse searchResponse = restClient.search(searchRequest);
+        SearchResponse searchResponse = restClient.search(searchRequest, RequestOptions.DEFAULT);
 
         SearchHits hits = searchResponse.getHits();
 
@@ -75,7 +76,7 @@ public class Geo1Test {
 
         SearchRequest searchRequest = new SearchRequest("commune").source(sourceBuilder);
 
-        SearchResponse searchResponse = restClient.search(searchRequest);
+        SearchResponse searchResponse = restClient.search(searchRequest, RequestOptions.DEFAULT);
 
         SearchHits hits = searchResponse.getHits();
 
@@ -104,7 +105,7 @@ public class Geo1Test {
 
         SearchRequest searchRequest = new SearchRequest("commune").source(sourceBuilder);
 
-        SearchResponse searchResponse = restClient.search(searchRequest);
+        SearchResponse searchResponse = restClient.search(searchRequest, RequestOptions.DEFAULT);
 
         SearchHits hits = searchResponse.getHits();
 
@@ -139,7 +140,7 @@ public class Geo1Test {
 
         SearchRequest searchRequest = new SearchRequest("commune").source(sourceBuilder);
 
-        SearchResponse searchResponse = restClient.search(searchRequest);
+        SearchResponse searchResponse = restClient.search(searchRequest, RequestOptions.DEFAULT);
 
         ParsedGeoDistance parsedGeoDistance = searchResponse.getAggregations().get("distanceRanges");
 

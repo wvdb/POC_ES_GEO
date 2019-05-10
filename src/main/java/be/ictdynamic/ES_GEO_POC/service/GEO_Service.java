@@ -1,14 +1,13 @@
 package be.ictdynamic.ES_GEO_POC.service;
 
-import be.ictdynamic.ES_GEO_POC.model.CommuneRequest;
-import be.ictdynamic.ES_GEO_POC.model.GeoAggregationRequest;
-import be.ictdynamic.ES_GEO_POC.model.LocationRequest;
-import be.ictdynamic.ES_GEO_POC.model.RetailLocationsRequest;
+import be.ictdynamic.ES_GEO_POC.model.*;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.common.geo.GeoPoint;
 import org.elasticsearch.common.unit.DistanceUnit;
+import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
@@ -49,60 +48,72 @@ public class GEO_Service {
 //                                               , "commune.indexFieldName",      "myLocation"
 //                                               , "commune.indexName",           "commune");
 
-    public Set<?> geoDistanceQuery(String index, String nameGeoPointField, String objectType, double lat, double lon, int distance) throws IOException {
+    public Set<?> geoDistanceQuery(String index, String nameGeoPointField, double lat, double lon, double distance, RetrieveObjectsWithinDistanceRequest retrieveObjectsWithinDistanceRequest) throws IOException {
         Date startDate = new Date();
 
         Set<Object> objectsWithinDistance = new LinkedHashSet<>();
         SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
-
-        QueryBuilder query = QueryBuilders.matchAllQuery();
 
         QueryBuilder geoDistanceQueryBuilder = QueryBuilders
                 .geoDistanceQuery(nameGeoPointField)
                 .point(lat, lon)
                 .distance(distance, DistanceUnit.KILOMETERS);
 
-        QueryBuilder finalQuery = QueryBuilders.boolQuery().must(query).filter(geoDistanceQueryBuilder);
+        BoolQueryBuilder boolQuery = new BoolQueryBuilder();
 
-        sourceBuilder.query(finalQuery).size(SIZE_ES_QUERY);
+        if (retrieveObjectsWithinDistanceRequest != null && retrieveObjectsWithinDistanceRequest.getConditions() != null) {
+            for (String conditionName : retrieveObjectsWithinDistanceRequest.getConditions().keySet()) {
+                 boolQuery.must(QueryBuilders.termQuery(conditionName, retrieveObjectsWithinDistanceRequest.getConditions().get(conditionName)));
+            }
+        }
+
+        QueryBuilder completeQuery = QueryBuilders.boolQuery().must(boolQuery).filter(geoDistanceQueryBuilder);
+
+        sourceBuilder.query(completeQuery).size(SIZE_ES_QUERY);
 
         SearchRequest searchRequest = new SearchRequest(index)
                 .source(sourceBuilder.sort(SortBuilders.geoDistanceSort(nameGeoPointField, lat, lon)
                         .order(SortOrder.ASC)
                         .unit(DistanceUnit.KILOMETERS)));
 
-        SearchResponse searchResponse = restClient.search(searchRequest);
+        SearchResponse searchResponse = restClient.search(searchRequest, RequestOptions.DEFAULT);
 
         SearchHits hits = searchResponse.getHits();
 
         for (SearchHit hit : hits.getHits()) {
-            objectsWithinDistance.add(GEO_Service.getObjectFromES_Hit(hit, objectType));
+            objectsWithinDistance.add(GEO_Service.getObjectFrom_ES_Hit(hit, nameGeoPointField));
         }
 
         return timedReturn(LOGGER, new Object() {}.getClass().getEnclosingMethod().getName(), startDate.getTime(), objectsWithinDistance);
     }
 
     @SuppressWarnings("unchecked")
-    private static <T> T getObjectFromES_Hit(SearchHit hit, String objectType) {
+    private static Object getObjectFrom_ES_Hit(SearchHit hit, String nameGeoPointField) {
+        Double score = 0.0;
+
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("hit: id = {}", hit.getId());
             LOGGER.debug("hit: score = {}", hit.getScore());
             if (hit.getSortValues().length >= 1) {
                 LOGGER.debug("hit: sort value = {}", hit.getSortValues()[0]);
+                score = (Double) hit.getSortValues()[0];
+            }
+            else {
+                score = (double) hit.getScore();
             }
         }
 
         Map<String, Object> source = hit.getSourceAsMap();
 
-        switch(objectType) {
-            case "location":
-                LocationRequest.Location location = new LocationRequest.Location();
+        switch(nameGeoPointField) {
+            case "railwayStationLocation":
+                LocationRequest.RailwayStation railwayStation = new LocationRequest.RailwayStation();
 
-                location.setId((String) source.get("id"));
-                location.setName((String) source.get("name"));
-                location.setObjectId((String) source.get("objectId"));
-                location.setScore(hit.getScore());
-                return (T) location;
+                railwayStation.setId((String) source.get("id"));
+                railwayStation.setNaam((String) source.get("name"));
+                railwayStation.setObjectId((String) source.get("objectId"));
+                railwayStation.setScore(score.floatValue());
+                return railwayStation;
             case "commune":
                 CommuneRequest.Commune commune = new CommuneRequest.Commune();
 
@@ -113,13 +124,13 @@ public class GEO_Service {
                         commune.setDistance((double) hit.getSortValues()[0]);
                     }
                 }
-                return (T) commune;
+                return commune;
             case "retailer":
                 RetailLocationsRequest.Location retailLocation = new RetailLocationsRequest.Location();
 
                 retailLocation.setAddress((String) source.get("address"));
                 retailLocation.setDescription((String) source.get("description"));
-                return (T) retailLocation;
+                return retailLocation;
             default:
                 LOGGER.error("invalid objectType: this objectType is currently not supported.");
                 return null;
@@ -150,21 +161,21 @@ public class GEO_Service {
 
         SearchRequest searchRequest = new SearchRequest(metaData.get(objectType + ".indexName")).source(sourceBuilder);
 
-        SearchResponse searchResponse = restClient.search(searchRequest);
+        SearchResponse searchResponse = restClient.search(searchRequest, RequestOptions.DEFAULT);
 
         SearchHits hits = searchResponse.getHits();
 
         for (SearchHit hit : hits.getHits()) {
-            locations.add(GEO_Service.getObjectFromES_Hit(hit, objectType));
+            locations.add(GEO_Service.getObjectFrom_ES_Hit(hit, objectType));
         }
 
         return timedReturn(LOGGER, new Object() {}.getClass().getEnclosingMethod().getName(), startDate.getTime(), locations);
     }
 
-    public Set<RetailLocationsRequest.Location> geoPolygonQuery(List<GeoPoint> geoPoints) throws IOException {
+    public Set<Object> geoPolygonQuery(List<GeoPoint> geoPoints) throws IOException {
         Date startDate = new Date();
 
-        Set<RetailLocationsRequest.Location> locations = new LinkedHashSet<>();
+        Set<Object> locations = new LinkedHashSet<>();
         SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
 
         QueryBuilder query = QueryBuilders.matchAllQuery();
@@ -178,12 +189,12 @@ public class GEO_Service {
 
         SearchRequest searchRequest = new SearchRequest("retail_locations").source(sourceBuilder);
 
-        SearchResponse searchResponse = restClient.search(searchRequest);
+        SearchResponse searchResponse = restClient.search(searchRequest, RequestOptions.DEFAULT);
 
         SearchHits hits = searchResponse.getHits();
 
         for (SearchHit hit : hits.getHits()) {
-            locations.add(GEO_Service.getObjectFromES_Hit(hit, "retailer"));
+            locations.add(GEO_Service.getObjectFrom_ES_Hit(hit, "retailer"));
         }
 
         return timedReturn(LOGGER, new Object() {}.getClass().getEnclosingMethod().getName(), startDate.getTime(), locations);
@@ -213,7 +224,7 @@ public class GEO_Service {
 
         SearchRequest searchRequest = new SearchRequest("retail_locations").source(sourceBuilder);
 
-        SearchResponse searchResponse = restClient.search(searchRequest);
+        SearchResponse searchResponse = restClient.search(searchRequest, RequestOptions.DEFAULT);
 
         ParsedGeoDistance parsedGeoDistance = searchResponse.getAggregations().get("distanceRanges");
 

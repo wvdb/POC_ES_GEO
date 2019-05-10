@@ -2,7 +2,7 @@
 
 ## History
 This project has been designed/developed as a POC. Focus of the POC is to test some Spatial Queries against Elasticsearch (ES).<br>
-For this POC, we use the RestHighLevelClient and rely entirely on REST.<br>Code has been written in Java 9. Feel free to spot the usage of JDK 9 syntax and to downgrade to Java 8 if necessary.  
+For this POC, we use the RestHighLevelClient and rely entirely on REST.<br>Code has been written in Java 11 (but fairly Java 8 compliant).   
 You can find 3 following types of Spatial Queries: 
 - retrieve objects within certain distance
 - retrieve communes within rectangle/BoundingBox
@@ -11,7 +11,7 @@ You can find 3 following types of Spatial Queries:
 ## Running the project
 
 ### Running application locally
-Boot a recent version of ES (preferably version 6.1.1)<br>
+Boot a recent version of ES (current code supports ES version 7.0.1)<br>
 mvn spring-boot:run -Dserver.port=8090
 
 ### Swagger

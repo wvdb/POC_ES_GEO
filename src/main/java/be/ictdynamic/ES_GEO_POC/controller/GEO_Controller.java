@@ -26,17 +26,17 @@ public class GEO_Controller extends BaseController {
     @Autowired
     private GEO_Service geoService;
 
-    @ApiOperation(value = "Method to persist locations.", notes = "")
+    @ApiOperation(value = "Method to persist railway stations.", notes = "")
     @ApiResponses(value = {
             @ApiResponse(code = 201, message = "Created. The locations have been created.", response = PocResponse.class),
             @ApiResponse(code = 500, message = "Internal server error.", response = PocResponse.class) })
-    @RequestMapping(value="/locations",
+    @RequestMapping(value="/railwayStations",
             method = RequestMethod.POST,
             consumes = {MediaType.APPLICATION_JSON_VALUE},
             produces = {MediaType.APPLICATION_JSON_VALUE})
-    public ResponseEntity persistLocations (@Valid @RequestBody(required = true) LocationRequest locationRequest) throws IllegalArgumentException, IOException {
-        elastSearchPersistService.persistLocations(locationRequest);
-        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(new PocResponse(String.format("Number of locations persisted: %06d.", locationRequest.getLocations().size())));
+    public ResponseEntity railwayStations (@Valid @RequestBody(required = true) LocationRequest locationRequest) throws IllegalArgumentException, IOException {
+        elastSearchPersistService.persistRailwayStations(locationRequest);
+        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(new PocResponse(String.format("Number of railway stations persisted: %06d.", locationRequest.getRailwayStations().size())));
     }
 
     @ApiOperation(value = "Method to persist communes.", notes = "")
@@ -65,20 +65,17 @@ public class GEO_Controller extends BaseController {
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(new PocResponse(String.format("Number of locations persisted: %06d.", retailLocationsRequest.getLocations().size())));
     }
 
-    @ApiOperation(value = "Generic Method to retrieve objects within certain distance.", notes = "")
-    @RequestMapping(value="/retrieveObjects", method=RequestMethod.GET)
-    public ResponseEntity<?> retrieveObjects(
+    @ApiOperation(value = "Generic Method to retrieve objects within certain distance.", notes = "(distance is in kilometers)")
+    @RequestMapping(value="/retrieveObjectsWithinDistance", method=RequestMethod.GET)
+    public ResponseEntity<?> retrieveObjectsWithinDistance(
             @RequestParam(value = "index", required = true) String index,
             @RequestParam(value = "nameGeoPointField", required = true) String nameGeoPointField,
-            @RequestParam(value = "objectType", required = true) String objectType,
             @RequestParam(value = "lat", required = true) double lat,
             @RequestParam(value = "lon", required = true) double lon,
-            @RequestParam(value = "distance", required = true) int distance
+            @RequestParam(value = "distance", required = true) double distance,
+            @RequestBody(required = false) RetrieveObjectsWithinDistanceRequest retrieveObjectsWithinDistanceRequest
     ) throws Exception {
-        if (org.springframework.util.StringUtils.isEmpty(objectType)) {
-            throw new IllegalArgumentException("queryParameterMap unknown");
-        }
-        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(geoService.geoDistanceQuery(index, nameGeoPointField, objectType, lat, lon, distance));
+        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(geoService.geoDistanceQuery(index, nameGeoPointField, lat, lon, distance, retrieveObjectsWithinDistanceRequest));
     }
 
     @ApiOperation(value = "Method to retrieve objects within Bounding Box.", notes = "")

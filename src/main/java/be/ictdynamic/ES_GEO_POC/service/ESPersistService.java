@@ -5,6 +5,7 @@ import be.ictdynamic.ES_GEO_POC.model.LocationRequest;
 import be.ictdynamic.ES_GEO_POC.model.RetailLocationsRequest;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.index.IndexResponse;
+import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
@@ -50,7 +51,7 @@ public class ESPersistService {
                             "location", myLocation
                     );
 
-            IndexResponse indexResponse = restClient.index(indexRequest);
+            IndexResponse indexResponse = restClient.index(indexRequest, RequestOptions.DEFAULT);
 
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("IndexResponse: {}", indexResponse);
@@ -80,7 +81,7 @@ public class ESPersistService {
                             "myLocation", myLocation
                     );
 
-            IndexResponse indexResponse = restClient.index(indexRequest);
+            IndexResponse indexResponse = restClient.index(indexRequest, RequestOptions.DEFAULT);
 
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("IndexResponse: {}", indexResponse);
@@ -91,33 +92,33 @@ public class ESPersistService {
     }
 
     @SuppressWarnings("unchecked")
-    public void persistLocations(LocationRequest locationRequest) throws IllegalArgumentException, IOException {
+    public void persistRailwayStations(LocationRequest locationRequest) throws IllegalArgumentException, IOException {
         Date startDate = new Date();
 
-        for (LocationRequest.Location location : locationRequest.getLocations()) {
+        for (LocationRequest.RailwayStation railwayStation : locationRequest.getRailwayStations()) {
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Location = {}.", location);
+                LOGGER.debug("RailwayStation = {}.", railwayStation);
             }
 
-            JSONObject myLocation = new JSONObject();
+            JSONObject railwayStationLocation = new JSONObject();
 
-            myLocation.put("lat", location.getPoint_lat());
-            myLocation.put("lon", location.getPoint_lng());
+            railwayStationLocation.put("lat", railwayStation.getPoint_lat());
+            railwayStationLocation.put("lon", railwayStation.getPoint_lng());
 
-            IndexRequest indexRequest = new IndexRequest("location", "doc")
+            IndexRequest indexRequest = new IndexRequest("railway_station")
                     .source(
-                            "id", location.getId(),
-                            "name", location.getName(),
-                            "myLocation", myLocation,
-                            "status", location.getStatus(),
-                            "level", location.getLevel(),
-                            "planning", location.getPlanning(),
-                            "shape", location.getShape(),
-                            "objectId", location.getObjectId(),
-                            "gisId", location.getGisId()
+                            "id", railwayStation.getId(),
+                            "name", railwayStation.getNaam(),
+                            "railwayStationLocation", railwayStationLocation,
+                            "status", railwayStation.getStatus(),
+                            "level", railwayStation.getNiveau(),
+                            "planning", railwayStation.getPlanning(),
+                            "shape", railwayStation.getShape(),
+                            "objectId", railwayStation.getObjectId(),
+                            "gisId", railwayStation.getGisId()
                     );
 
-            IndexResponse indexResponse = restClient.index(indexRequest);
+            IndexResponse indexResponse = restClient.index(indexRequest, RequestOptions.DEFAULT);
 
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("IndexResponse: {}", indexResponse);
