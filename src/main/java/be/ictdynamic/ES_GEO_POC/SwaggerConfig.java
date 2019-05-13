@@ -31,8 +31,8 @@ public class SwaggerConfig {
 
     private ApiInfo apiInfo() {
         return new ApiInfoBuilder()
-                .title("Elasticsearch GEO POC")
-                .description("This project has been designed/developed as a POC. Focus of the POC is to test a number of GEO related queries against Elasticsearch (ES).")
+                .title("ElasticSearch GEO POC")
+                .description("This project has been designed/developed as a POC. Focus of the POC is to test a number of GEO related queries against ElasticSearch (ES).")
                 .contact(new Contact("Wim Van den Brande", "", "info@ictdynamic.be"))
                 .build();
     }

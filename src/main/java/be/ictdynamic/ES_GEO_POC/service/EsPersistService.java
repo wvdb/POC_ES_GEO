@@ -21,9 +21,9 @@ import static be.ictdynamic.ES_GEO_POC.service.IctDynamicUtilities.timedReturn;
 
 @Component
 @PropertySource(value = {"classpath:/application.properties"}, ignoreResourceNotFound = true)
-public class ESPersistService {
+public class EsPersistService {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ESPersistService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(EsPersistService.class);
 
     @Autowired
     private RestHighLevelClient restClient;
@@ -37,18 +37,18 @@ public class ESPersistService {
                 LOGGER.debug("Location = {}.", location);
             }
 
-            JSONObject myLocation = new JSONObject();
+            JSONObject retailLocation = new JSONObject();
 
             // oepsie ... small mistake in JSON
-            myLocation.put("lon", location.getLat());
-            myLocation.put("lat", location.getLon());
+            retailLocation.put("lon", location.getLat());
+            retailLocation.put("lat", location.getLon());
 
-            IndexRequest indexRequest = new IndexRequest("retail_locations", "doc")
+            IndexRequest indexRequest = new IndexRequest("retail_location")
                     .source(
                             "retailer", "Starbucks",
                             "address", location.getAddress(),
                             "description", location.getDescription(),
-                            "location", myLocation
+                            "retailLocation", retailLocation
                     );
 
             IndexResponse indexResponse = restClient.index(indexRequest, RequestOptions.DEFAULT);

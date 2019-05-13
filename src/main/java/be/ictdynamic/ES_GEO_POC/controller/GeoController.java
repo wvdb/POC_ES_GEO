@@ -1,8 +1,8 @@
 package be.ictdynamic.ES_GEO_POC.controller;
 
 import be.ictdynamic.ES_GEO_POC.model.*;
-import be.ictdynamic.ES_GEO_POC.service.ESPersistService;
-import be.ictdynamic.ES_GEO_POC.service.GEO_Service;
+import be.ictdynamic.ES_GEO_POC.service.EsPersistService;
+import be.ictdynamic.ES_GEO_POC.service.GeoService;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
@@ -19,23 +19,23 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-public class GEO_Controller extends BaseController {
+public class GeoController extends BaseController {
     @Autowired
-    private ESPersistService elastSearchPersistService;
+    private EsPersistService esPersistService;
 
     @Autowired
-    private GEO_Service geoService;
+    private GeoService geoService;
 
     @ApiOperation(value = "Method to persist railway stations.", notes = "")
     @ApiResponses(value = {
-            @ApiResponse(code = 201, message = "Created. The locations have been created.", response = PocResponse.class),
+            @ApiResponse(code = 201, message = "Created. The railway stations have been created.", response = PocResponse.class),
             @ApiResponse(code = 500, message = "Internal server error.", response = PocResponse.class) })
     @RequestMapping(value="/railwayStations",
             method = RequestMethod.POST,
             consumes = {MediaType.APPLICATION_JSON_VALUE},
             produces = {MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity railwayStations (@Valid @RequestBody(required = true) LocationRequest locationRequest) throws IllegalArgumentException, IOException {
-        elastSearchPersistService.persistRailwayStations(locationRequest);
+        esPersistService.persistRailwayStations(locationRequest);
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(new PocResponse(String.format("Number of railway stations persisted: %06d.", locationRequest.getRailwayStations().size())));
     }
 
@@ -48,11 +48,11 @@ public class GEO_Controller extends BaseController {
             consumes = {MediaType.APPLICATION_JSON_VALUE},
             produces = {MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity persistCommunes (@Valid @RequestBody(required = true) CommuneRequest communeRequest) throws IllegalArgumentException, IOException {
-        elastSearchPersistService.persistCommunes(communeRequest);
+        esPersistService.persistCommunes(communeRequest);
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(new PocResponse(String.format("Number of communes persisted: %06d.", communeRequest.getCommunes().size())));
     }
 
-    @ApiOperation(value = "Method to persist retail locations.", notes = "")
+    @ApiOperation(value = "Method to persist (Starbucks) retail locations.", notes = "")
     @ApiResponses(value = {
             @ApiResponse(code = 201, message = "Created. The retail locations have been created.", response = PocResponse.class),
             @ApiResponse(code = 500, message = "Internal server error.", response = PocResponse.class) })
@@ -61,7 +61,7 @@ public class GEO_Controller extends BaseController {
             consumes = {MediaType.APPLICATION_JSON_VALUE},
             produces = {MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity persistRetailLocations (@Valid @RequestBody(required = true) RetailLocationsRequest retailLocationsRequest) throws IllegalArgumentException, IOException {
-        elastSearchPersistService.persistRetailLocations(retailLocationsRequest);
+        esPersistService.persistRetailLocations(retailLocationsRequest);
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(new PocResponse(String.format("Number of locations persisted: %06d.", retailLocationsRequest.getLocations().size())));
     }
 

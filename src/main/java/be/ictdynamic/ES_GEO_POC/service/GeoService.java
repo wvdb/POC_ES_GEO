@@ -32,9 +32,9 @@ import static be.ictdynamic.ES_GEO_POC.service.IctDynamicUtilities.timedReturn;
 
 @Component
 @PropertySource(value = {"classpath:/application.properties"}, ignoreResourceNotFound = true)
-public class GEO_Service {
+public class GeoService {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(GEO_Service.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(GeoService.class);
 
     private static final int SIZE_ES_QUERY = 100;
 
@@ -81,7 +81,7 @@ public class GEO_Service {
         SearchHits hits = searchResponse.getHits();
 
         for (SearchHit hit : hits.getHits()) {
-            objectsWithinDistance.add(GEO_Service.getObjectFrom_ES_Hit(hit, nameGeoPointField));
+            objectsWithinDistance.add(GeoService.getObjectFrom_ES_Hit(hit, nameGeoPointField));
         }
 
         return timedReturn(LOGGER, new Object() {}.getClass().getEnclosingMethod().getName(), startDate.getTime(), objectsWithinDistance);
@@ -114,25 +114,24 @@ public class GEO_Service {
                 railwayStation.setObjectId((String) source.get("objectId"));
                 railwayStation.setScore(score.floatValue());
                 return railwayStation;
+
             case "commune":
                 CommuneRequest.Commune commune = new CommuneRequest.Commune();
 
                 commune.setCity((String) source.get("city"));
-                if (hit.getSortValues().length >= 1) {
-                    //TODO : to clarify why sort values is an array and if we can simply take first element of array
-                    if (hit.getSortValues().length >= 1) {
-                        commune.setDistance((double) hit.getSortValues()[0]);
-                    }
-                }
+                commune.setDistance(score);
                 return commune;
-            case "retailer":
-                RetailLocationsRequest.Location retailLocation = new RetailLocationsRequest.Location();
 
+            case "retailLocation":
+                RetailLocationsRequest.Location retailLocation = new RetailLocationsRequest.Location();
                 retailLocation.setAddress((String) source.get("address"));
                 retailLocation.setDescription((String) source.get("description"));
+                retailLocation.setDistance(score.floatValue());
+
                 return retailLocation;
+
             default:
-                LOGGER.error("invalid objectType: this objectType is currently not supported.");
+                LOGGER.error("invalid nameGeoPointField: the value {} is currently not supported.", nameGeoPointField);
                 return null;
         }
 
@@ -166,7 +165,7 @@ public class GEO_Service {
         SearchHits hits = searchResponse.getHits();
 
         for (SearchHit hit : hits.getHits()) {
-            locations.add(GEO_Service.getObjectFrom_ES_Hit(hit, objectType));
+            locations.add(GeoService.getObjectFrom_ES_Hit(hit, objectType));
         }
 
         return timedReturn(LOGGER, new Object() {}.getClass().getEnclosingMethod().getName(), startDate.getTime(), locations);
@@ -194,7 +193,7 @@ public class GEO_Service {
         SearchHits hits = searchResponse.getHits();
 
         for (SearchHit hit : hits.getHits()) {
-            locations.add(GEO_Service.getObjectFrom_ES_Hit(hit, "retailer"));
+            locations.add(GeoService.getObjectFrom_ES_Hit(hit, "retailer"));
         }
 
         return timedReturn(LOGGER, new Object() {}.getClass().getEnclosingMethod().getName(), startDate.getTime(), locations);
