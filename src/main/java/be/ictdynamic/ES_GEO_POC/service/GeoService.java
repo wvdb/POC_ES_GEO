@@ -43,12 +43,8 @@ public class GeoService {
 
     @Value("#{${app.metaData}}")
     private Map<String,String> metaData;
-//    public Map<String, String> metaData = Map.of("retailer.indexFieldName",     "location"
-//                                               , "retailer.indexName",          "retail_locations"
-//                                               , "commune.indexFieldName",      "myLocation"
-//                                               , "commune.indexName",           "commune");
 
-    public Set<?> geoDistanceQuery(String index, String nameGeoPointField, double lat, double lon, double distance, RetrieveObjectsWithinDistanceRequest retrieveObjectsWithinDistanceRequest) throws IOException {
+    public Set<?> geoDistanceQuery(String index, String nameGeoPointField, double lat, double lon, double distance, EsQuery esQuery) throws IOException {
         Date startDate = new Date();
 
         Set<Object> objectsWithinDistance = new LinkedHashSet<>();
@@ -59,13 +55,7 @@ public class GeoService {
                 .point(lat, lon)
                 .distance(distance, DistanceUnit.KILOMETERS);
 
-        BoolQueryBuilder boolQuery = new BoolQueryBuilder();
-
-        if (retrieveObjectsWithinDistanceRequest != null && retrieveObjectsWithinDistanceRequest.getConditions() != null) {
-            for (String conditionName : retrieveObjectsWithinDistanceRequest.getConditions().keySet()) {
-                 boolQuery.must(QueryBuilders.termQuery(conditionName, retrieveObjectsWithinDistanceRequest.getConditions().get(conditionName)));
-            }
-        }
+        BoolQueryBuilder boolQuery = getBooleanQueryWithConditions(esQuery);
 
         QueryBuilder completeQuery = QueryBuilders.boolQuery().must(boolQuery).filter(geoDistanceQueryBuilder);
 
@@ -85,56 +75,6 @@ public class GeoService {
         }
 
         return timedReturn(LOGGER, new Object() {}.getClass().getEnclosingMethod().getName(), startDate.getTime(), objectsWithinDistance);
-    }
-
-    @SuppressWarnings("unchecked")
-    private static Object getObjectFrom_ES_Hit(SearchHit hit, String nameGeoPointField) {
-        Double score = 0.0;
-
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("hit: id = {}", hit.getId());
-            LOGGER.debug("hit: score = {}", hit.getScore());
-            if (hit.getSortValues().length >= 1) {
-                LOGGER.debug("hit: sort value = {}", hit.getSortValues()[0]);
-                score = (Double) hit.getSortValues()[0];
-            }
-            else {
-                score = (double) hit.getScore();
-            }
-        }
-
-        Map<String, Object> source = hit.getSourceAsMap();
-
-        switch(nameGeoPointField) {
-            case "railwayStationLocation":
-                LocationRequest.RailwayStation railwayStation = new LocationRequest.RailwayStation();
-
-                railwayStation.setId((String) source.get("id"));
-                railwayStation.setNaam((String) source.get("name"));
-                railwayStation.setObjectId((String) source.get("objectId"));
-                railwayStation.setScore(score.floatValue());
-                return railwayStation;
-
-            case "commune":
-                CommuneRequest.Commune commune = new CommuneRequest.Commune();
-
-                commune.setCity((String) source.get("city"));
-                commune.setDistance(score);
-                return commune;
-
-            case "retailLocation":
-                RetailLocationsRequest.Location retailLocation = new RetailLocationsRequest.Location();
-                retailLocation.setAddress((String) source.get("address"));
-                retailLocation.setDescription((String) source.get("description"));
-                retailLocation.setDistance(score.floatValue());
-
-                return retailLocation;
-
-            default:
-                LOGGER.error("invalid nameGeoPointField: the value {} is currently not supported.", nameGeoPointField);
-                return null;
-        }
-
     }
 
     public Set<?> geoBoundingBoxQuery(String objectType, double[] corners) throws IOException {
@@ -171,35 +111,34 @@ public class GeoService {
         return timedReturn(LOGGER, new Object() {}.getClass().getEnclosingMethod().getName(), startDate.getTime(), locations);
     }
 
-    public Set<Object> geoPolygonQuery(List<GeoPoint> geoPoints) throws IOException {
+    public Set<Object> geoPolygonQuery(String index, String nameGeoPointField, List<GeoPoint> geoPoints, EsQuery esQuery) throws IOException {
         Date startDate = new Date();
 
         Set<Object> locations = new LinkedHashSet<>();
         SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
 
-        QueryBuilder query = QueryBuilders.matchAllQuery();
+        QueryBuilder geoQueryBuilder = QueryBuilders.geoPolygonQuery(nameGeoPointField, geoPoints);
 
-        QueryBuilder geoQueryBuilder = QueryBuilders
-                .geoPolygonQuery("location", geoPoints);
+        BoolQueryBuilder boolQuery = getBooleanQueryWithConditions(esQuery);
 
-        QueryBuilder finalQuery = QueryBuilders.boolQuery().must(query).filter(geoQueryBuilder);
+        QueryBuilder finalQuery = QueryBuilders.boolQuery().must(boolQuery).filter(geoQueryBuilder);
 
         sourceBuilder.query(finalQuery).size(SIZE_ES_QUERY);
 
-        SearchRequest searchRequest = new SearchRequest("retail_locations").source(sourceBuilder);
+        SearchRequest searchRequest = new SearchRequest(index).source(sourceBuilder);
 
         SearchResponse searchResponse = restClient.search(searchRequest, RequestOptions.DEFAULT);
 
         SearchHits hits = searchResponse.getHits();
 
         for (SearchHit hit : hits.getHits()) {
-            locations.add(GeoService.getObjectFrom_ES_Hit(hit, "retailer"));
+            locations.add(GeoService.getObjectFrom_ES_Hit(hit, nameGeoPointField));
         }
 
         return timedReturn(LOGGER, new Object() {}.getClass().getEnclosingMethod().getName(), startDate.getTime(), locations);
     }
 
-    public Map<String, Long> geoAggregation(GeoAggregationRequest geoAggregationRequest) throws IOException {
+    public Map<String, Long> geoAggregation(String index, String nameGeoPointField, GeoAggregationRequest geoAggregationRequest) throws IOException {
         Map<String, Long> aggregations = new LinkedHashMap<>();
 
         SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
@@ -214,14 +153,15 @@ public class GeoService {
             geoDistanceAggregationBuilder.addRange(geoRange);
         }
 
-        geoDistanceAggregationBuilder.field("location");
-        // Setting the keyed flag to true will associate a unique string key with each bucket and return the ranges as a hash rather than an array
+        geoDistanceAggregationBuilder.field(nameGeoPointField);
+        // Setting the keyed flag to true will associate a unique string key with each bucket
+        // and return the ranges as a hash rather than an array
         geoDistanceAggregationBuilder.keyed(true);
         geoDistanceAggregationBuilder.unit(DistanceUnit.KILOMETERS);
 
         sourceBuilder.aggregation(geoDistanceAggregationBuilder);
 
-        SearchRequest searchRequest = new SearchRequest("retail_locations").source(sourceBuilder);
+        SearchRequest searchRequest = new SearchRequest(index).source(sourceBuilder);
 
         SearchResponse searchResponse = restClient.search(searchRequest, RequestOptions.DEFAULT);
 
@@ -236,5 +176,77 @@ public class GeoService {
         return aggregations;
     }
 
+    // private methods
+
+    @SuppressWarnings("unchecked")
+    private static Object getObjectFrom_ES_Hit(SearchHit hit, String nameGeoPointField) {
+        Double score = 0.0;
+
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("hit: id = {}", hit.getId());
+            LOGGER.debug("hit: score = {}", hit.getScore());
+            if (hit.getSortValues().length >= 1) {
+                LOGGER.debug("hit: sort value = {}", hit.getSortValues()[0]);
+                score = (Double) hit.getSortValues()[0];
+            }
+            else {
+                score = (double) hit.getScore();
+            }
+        }
+
+        Map<String, Object> source = hit.getSourceAsMap();
+
+        switch(nameGeoPointField) {
+            case "railwayStationLocation":
+                RailwayStationRequest.RailwayStation railwayStation = new RailwayStationRequest.RailwayStation();
+
+                railwayStation.setId((String) source.get("id"));
+                railwayStation.setNaam((String) source.get("name"));
+                railwayStation.setObjectId((String) source.get("objectId"));
+                railwayStation.setScore(score.floatValue());
+                return railwayStation;
+
+            case "commune":
+                CommuneRequest.Commune commune = new CommuneRequest.Commune();
+
+                commune.setCity((String) source.get("city"));
+                commune.setDistance(score);
+                return commune;
+
+            case "retailLocation":
+                RetailLocationsRequest.Location retailLocation = new RetailLocationsRequest.Location();
+                retailLocation.setAddress((String) source.get("address"));
+                retailLocation.setDescription((String) source.get("description"));
+                retailLocation.setDistance(score.floatValue());
+
+                return retailLocation;
+
+            default:
+                LOGGER.error("invalid nameGeoPointField: the value {} is currently not supported.", nameGeoPointField);
+                return null;
+        }
+
+    }
+
+    private BoolQueryBuilder getBooleanQueryWithConditions(EsQuery esQuery) {
+        BoolQueryBuilder boolQuery = new BoolQueryBuilder();
+
+        if (esQuery != null && esQuery.getEsConditions() != null) {
+            for (EsQuery.EsCondition esCondition : esQuery.getEsConditions()) {
+                switch (esCondition.getQueryType()) {
+                    case TERM_QUERY :
+                        boolQuery.must(QueryBuilders.termQuery(esCondition.getQueryField(), esCondition.getQueryValue()));
+                        break;
+                    case REGEXP_QUERY :
+                        boolQuery.must(QueryBuilders.regexpQuery(esCondition.getQueryField(), ((String) esCondition.getQueryValue())));
+                        break;
+                    default:
+                        LOGGER.error("Query Type {} is currently nog supported. Condition {} will be ignored.", esCondition.getQueryType(), esCondition);
+                }
+            }
+        }
+
+        return boolQuery;
+    }
 
 }

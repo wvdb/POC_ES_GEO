@@ -7,7 +7,7 @@ import lombok.Data;
 import java.util.List;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class LocationRequest {
+public class RailwayStationRequest {
     private List<RailwayStation> railwayStations;
 
     public List<RailwayStation> getRailwayStations() {

@@ -16,7 +16,6 @@ import javax.validation.Valid;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 public class GeoController extends BaseController {
@@ -34,9 +33,9 @@ public class GeoController extends BaseController {
             method = RequestMethod.POST,
             consumes = {MediaType.APPLICATION_JSON_VALUE},
             produces = {MediaType.APPLICATION_JSON_VALUE})
-    public ResponseEntity railwayStations (@Valid @RequestBody(required = true) LocationRequest locationRequest) throws IllegalArgumentException, IOException {
-        esPersistService.persistRailwayStations(locationRequest);
-        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(new PocResponse(String.format("Number of railway stations persisted: %06d.", locationRequest.getRailwayStations().size())));
+    public ResponseEntity railwayStations (@Valid @RequestBody(required = true) RailwayStationRequest railwayStationRequest) throws IllegalArgumentException, IOException {
+        esPersistService.persistRailwayStations(railwayStationRequest);
+        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(new PocResponse(String.format("Number of railway stations persisted: %06d.", railwayStationRequest.getRailwayStations().size())));
     }
 
     @ApiOperation(value = "Method to persist communes.", notes = "")
@@ -73,9 +72,9 @@ public class GeoController extends BaseController {
             @RequestParam(value = "lat", required = true) double lat,
             @RequestParam(value = "lon", required = true) double lon,
             @RequestParam(value = "distance", required = true) double distance,
-            @RequestBody(required = false) RetrieveObjectsWithinDistanceRequest retrieveObjectsWithinDistanceRequest
+            @RequestBody(required = false) EsQuery esQuery
     ) throws Exception {
-        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(geoService.geoDistanceQuery(index, nameGeoPointField, lat, lon, distance, retrieveObjectsWithinDistanceRequest));
+        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(geoService.geoDistanceQuery(index, nameGeoPointField, lat, lon, distance, esQuery));
     }
 
     @ApiOperation(value = "Method to retrieve objects within Bounding Box.", notes = "")
@@ -97,19 +96,29 @@ public class GeoController extends BaseController {
 
     @ApiOperation(value = "Method to retrieve objects within Polygon.", notes = "Query parameter is a map of geoPoints(lat,lon).")
     @RequestMapping(value="/geoPolygonQuery", method=RequestMethod.GET)
-    public ResponseEntity<?> geoPolygonQuery(@RequestParam Map<String, String> geoPointsAsMap) throws Exception {
+    public ResponseEntity<?> geoPolygonQuery(
+            @RequestParam(value = "index", required = true) String index,
+            @RequestParam(value = "nameGeoPointField", required = true) String nameGeoPointField,
+            @RequestParam(value = "geoPoints", required = true) String geoPointsString,
+            @RequestBody(required = false) EsQuery esQuery
+    ) throws Exception {
         List<GeoPoint> geoPoints = new ArrayList<>();
-        geoPointsAsMap.forEach((key, value) -> {
-            GeoPoint geoPoint = new GeoPoint(Double.parseDouble(key), Double.parseDouble(value));
+        String[] geoPointsAsString = geoPointsString.split("_");
+
+        for (String geoPointAsString : geoPointsAsString) {
+            GeoPoint geoPoint = new GeoPoint(Double.parseDouble(geoPointAsString.split(",")[0]), Double.parseDouble(geoPointAsString.split(",")[1]));
             geoPoints.add(geoPoint);
-        });
-        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(geoService.geoPolygonQuery(geoPoints));
+        };
+        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(geoService.geoPolygonQuery(index, nameGeoPointField, geoPoints, esQuery));
     }
 
     @ApiOperation(value = "Method to retrieve distance-aggregations.", notes = "")
     @RequestMapping(value="/geoAggregation", method=RequestMethod.POST)
-    public ResponseEntity<?> geoAggregation(@RequestBody(required = true) GeoAggregationRequest geoAggregationRequest) throws Exception {
-        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(geoService.geoAggregation(geoAggregationRequest));
+    public ResponseEntity<?> geoAggregation(
+            @RequestParam(value = "index", required = true) String index,
+            @RequestParam(value = "nameGeoPointField", required = true) String nameGeoPointField,
+            @RequestBody(required = true) GeoAggregationRequest geoAggregationRequest) throws Exception {
+        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(geoService.geoAggregation(index, nameGeoPointField, geoAggregationRequest));
     }
 
 }

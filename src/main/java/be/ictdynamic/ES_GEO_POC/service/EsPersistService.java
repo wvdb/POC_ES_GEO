@@ -1,7 +1,7 @@
 package be.ictdynamic.ES_GEO_POC.service;
 
 import be.ictdynamic.ES_GEO_POC.model.CommuneRequest;
-import be.ictdynamic.ES_GEO_POC.model.LocationRequest;
+import be.ictdynamic.ES_GEO_POC.model.RailwayStationRequest;
 import be.ictdynamic.ES_GEO_POC.model.RetailLocationsRequest;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.index.IndexResponse;
@@ -92,10 +92,10 @@ public class EsPersistService {
     }
 
     @SuppressWarnings("unchecked")
-    public void persistRailwayStations(LocationRequest locationRequest) throws IllegalArgumentException, IOException {
+    public void persistRailwayStations(RailwayStationRequest railwayStationRequest) throws IllegalArgumentException, IOException {
         Date startDate = new Date();
 
-        for (LocationRequest.RailwayStation railwayStation : locationRequest.getRailwayStations()) {
+        for (RailwayStationRequest.RailwayStation railwayStation : railwayStationRequest.getRailwayStations()) {
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("RailwayStation = {}.", railwayStation);
             }
