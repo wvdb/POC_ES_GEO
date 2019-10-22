@@ -139,6 +139,8 @@ public class GeoService {
     }
 
     public Map<String, Long> geoAggregation(String index, String nameGeoPointField, GeoAggregationRequest geoAggregationRequest) throws IOException {
+        Date startDate = new Date();
+
         Map<String, Long> aggregations = new LinkedHashMap<>();
 
         SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
@@ -173,7 +175,7 @@ public class GeoService {
             aggregations.put(key, docCount);
         }
 
-        return aggregations;
+        return timedReturn(LOGGER, new Object() {}.getClass().getEnclosingMethod().getName(), startDate.getTime(), aggregations);
     }
 
     // private methods
@@ -183,8 +185,9 @@ public class GeoService {
         Double score = 0.0;
 
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("hit: id = {}", hit.getId());
-            LOGGER.debug("hit: score = {}", hit.getScore());
+            LOGGER.debug("hit = {}", hit);
+//            LOGGER.debug("hit: id = {}", hit.getId());
+//            LOGGER.debug("hit: score = {}", hit.getScore());
             if (hit.getSortValues().length >= 1) {
                 LOGGER.debug("hit: sort value = {}", hit.getSortValues()[0]);
                 score = (Double) hit.getSortValues()[0];
