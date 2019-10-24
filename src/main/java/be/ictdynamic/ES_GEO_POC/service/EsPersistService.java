@@ -105,7 +105,7 @@ public class EsPersistService {
             railwayStationLocation.put("lat", railwayStation.getPoint_lat());
             railwayStationLocation.put("lon", railwayStation.getPoint_lng());
 
-            IndexRequest indexRequest = new IndexRequest("railway_station")
+            IndexRequest indexRequest = new IndexRequest("railway_stations")
                     .source(
                             "id", railwayStation.getId(),
                             "name", railwayStation.getNaam(),

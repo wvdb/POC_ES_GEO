@@ -24,6 +24,7 @@
         <java.version>11</java.version>
         <maven.compiler.source>{java.version}</maven.compiler.source>
         <maven.compiler.target>{java.version}</maven.compiler.target>
+        <ES.version>7.4.0</ES.version>
     </properties>
 
 	<dependencies>
@@ -104,13 +105,18 @@
         <!-- ES -->
         <dependency>
             <groupId>org.elasticsearch.client</groupId>
+            <artifactId>elasticsearch-rest-client</artifactId>
+            <version>${ES.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.elasticsearch.client</groupId>
             <artifactId>elasticsearch-rest-high-level-client</artifactId>
-            <version>7.0.1</version>
+            <version>${ES.version}</version>
         </dependency>
         <dependency>
             <groupId>org.elasticsearch</groupId>
             <artifactId>elasticsearch</artifactId>
-            <version>7.0.1</version>
+            <version>${ES.version}</version>
         </dependency>
         <!-- GSON -->
         <dependency>
