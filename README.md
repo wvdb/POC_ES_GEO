@@ -11,7 +11,7 @@ You can find 3 following types of Spatial Queries:
 ## Running the project
 
 ### Running application locally
-Boot a recent version of ES (current code supports ES version 7.0.1)<br>
+Boot a recent version of ES (current code supports ES version 7.4.0)<br>
 mvn spring-boot:run -Dserver.port=8090
 
 ### Swagger

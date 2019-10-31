@@ -119,11 +119,17 @@ public class GeoService {
 
         QueryBuilder geoQueryBuilder = QueryBuilders.geoPolygonQuery(nameGeoPointField, geoPoints);
 
-//        BoolQueryBuilder boolQuery = getBooleanQueryWithConditions(esQuery);
-//
-//        QueryBuilder finalQuery = QueryBuilders.boolQuery().must(boolQuery).filter(geoQueryBuilder);
+        QueryBuilder finalQuery;
 
-        sourceBuilder.query(geoQueryBuilder).size(SIZE_ES_QUERY);
+        if (esQuery != null) {
+            BoolQueryBuilder boolQuery = getBooleanQueryWithConditions(esQuery);
+            finalQuery = QueryBuilders.boolQuery().must(boolQuery).filter(geoQueryBuilder);
+        }
+        else {
+            finalQuery = geoQueryBuilder;
+        }
+
+        sourceBuilder.query(finalQuery).size(SIZE_ES_QUERY);
 
         SearchRequest searchRequest = new SearchRequest(index).source(sourceBuilder);
 
