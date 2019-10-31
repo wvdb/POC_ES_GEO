@@ -50,12 +50,12 @@ public class GeoService {
         Set<Object> objectsWithinDistance = new LinkedHashSet<>();
         SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
 
+        BoolQueryBuilder boolQuery = getBooleanQueryWithConditions(esQuery);
+
         QueryBuilder geoDistanceQueryBuilder = QueryBuilders
                 .geoDistanceQuery(nameGeoPointField)
                 .point(lat, lon)
                 .distance(distance, DistanceUnit.KILOMETERS);
-
-        BoolQueryBuilder boolQuery = getBooleanQueryWithConditions(esQuery);
 
         QueryBuilder completeQuery = QueryBuilders.boolQuery().must(boolQuery).filter(geoDistanceQueryBuilder);
 
@@ -119,11 +119,11 @@ public class GeoService {
 
         QueryBuilder geoQueryBuilder = QueryBuilders.geoPolygonQuery(nameGeoPointField, geoPoints);
 
-        BoolQueryBuilder boolQuery = getBooleanQueryWithConditions(esQuery);
+//        BoolQueryBuilder boolQuery = getBooleanQueryWithConditions(esQuery);
+//
+//        QueryBuilder finalQuery = QueryBuilders.boolQuery().must(boolQuery).filter(geoQueryBuilder);
 
-        QueryBuilder finalQuery = QueryBuilders.boolQuery().must(boolQuery).filter(geoQueryBuilder);
-
-        sourceBuilder.query(finalQuery).size(SIZE_ES_QUERY);
+        sourceBuilder.query(geoQueryBuilder).size(SIZE_ES_QUERY);
 
         SearchRequest searchRequest = new SearchRequest(index).source(sourceBuilder);
 
