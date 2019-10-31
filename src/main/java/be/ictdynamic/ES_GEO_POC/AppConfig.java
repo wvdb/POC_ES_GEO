@@ -20,7 +20,7 @@ public class AppConfig {
         int index = 0;
 
         for (String httpHostAsString : httpHosts) {
-            HttpHost httpHost = new HttpHost(httpHostAsString.split(":")[0], new Integer(httpHostAsString.split(":")[1]), "http");
+            HttpHost httpHost = new HttpHost(httpHostAsString.split(":")[0], Integer.valueOf(httpHostAsString.split(":")[1]), "http");
             httpHostsAsArray[index++] = httpHost;
         }
 

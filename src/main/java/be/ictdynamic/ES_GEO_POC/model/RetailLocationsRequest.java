@@ -1,6 +1,7 @@
 package be.ictdynamic.ES_GEO_POC.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.Data;
 
 import java.util.List;
 
@@ -17,67 +18,13 @@ public class RetailLocationsRequest {
     }
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
+    @Data
     public static class Location {
         private String address;
         private String description;
         private String lat;
         private String lon;
-
-        public String getAddress() {
-            return address;
-        }
-
-        public void setAddress(String address) {
-            this.address = address;
-        }
-
-        public String getDescription() {
-            return description;
-        }
-
-        public void setDescription(String description) {
-            this.description = description;
-        }
-
-        public String getLat() {
-            return lat;
-        }
-
-        public void setLat(String lat) {
-            this.lat = lat;
-        }
-
-        public String getLon() {
-            return lon;
-        }
-
-        public void setLon(String lon) {
-            this.lon = lon;
-        }
-
-        @Override
-        public String toString() {
-            return "Location{" + "address='" + address + '\'' + ", description='" + description + '\'' + ", lat='" + lat + '\'' + ", lon='" + lon + '\'' + '}';
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (!(o instanceof Location)) {
-                return false;
-            }
-
-            Location location = (Location) o;
-
-            return address != null ? address.equals(location.address) : location.address == null;
-        }
-
-        @Override
-        public int hashCode() {
-            return address != null ? address.hashCode() : 0;
-        }
+        private float distance;
     }
 
 }

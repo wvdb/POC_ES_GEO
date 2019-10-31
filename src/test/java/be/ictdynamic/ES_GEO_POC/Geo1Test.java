@@ -2,6 +2,7 @@ package be.ictdynamic.ES_GEO_POC;
 
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.common.geo.GeoPoint;
 import org.elasticsearch.common.unit.DistanceUnit;
@@ -28,7 +29,7 @@ import java.util.Map;
 /**
  * Created by wvdbrand on 30/06/2017.
  */
-@TestPropertySource(value = {"classpath:/application.properties"})
+@TestPropertySource(value = {"classpath:application-unit-test.properties", "classpath:application-unit-test.properties"})
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = Application.class)
 @WebAppConfiguration
@@ -42,21 +43,21 @@ public class Geo1Test {
 
         QueryBuilder query = QueryBuilders.matchAllQuery();
 
-        QueryBuilder geoDistanceQueryBuilder = QueryBuilders.geoDistanceQuery("myLocation").point(51.2061132, 4.40)
-                .distance(100, DistanceUnit.KILOMETERS);
+        QueryBuilder geoDistanceQueryBuilder = QueryBuilders.geoDistanceQuery("railwayStationLocation").point(51.152981, 4.455599)
+                .distance(10, DistanceUnit.KILOMETERS);
 
         QueryBuilder finalQuery = QueryBuilders.boolQuery().must(query).filter(geoDistanceQueryBuilder);
 
         sourceBuilder.query(finalQuery);
 
-        SearchRequest searchRequest = new SearchRequest("commune").source(sourceBuilder);
+        SearchRequest searchRequest = new SearchRequest("railway_station").source(sourceBuilder);
 
-        SearchResponse searchResponse = restClient.search(searchRequest);
+        SearchResponse searchResponse = restClient.search(searchRequest, RequestOptions.DEFAULT);
 
         SearchHits hits = searchResponse.getHits();
 
         for (SearchHit hit : hits.getHits()) {
-            logCityFromESHit(hit);
+            logRailwayStation(hit);
         }
 
     }
@@ -75,12 +76,12 @@ public class Geo1Test {
 
         SearchRequest searchRequest = new SearchRequest("commune").source(sourceBuilder);
 
-        SearchResponse searchResponse = restClient.search(searchRequest);
+        SearchResponse searchResponse = restClient.search(searchRequest, RequestOptions.DEFAULT);
 
         SearchHits hits = searchResponse.getHits();
 
         for (SearchHit hit : hits.getHits()) {
-            logCityFromESHit(hit);
+            logRailwayStation(hit);
         }
 
     }
@@ -104,12 +105,12 @@ public class Geo1Test {
 
         SearchRequest searchRequest = new SearchRequest("commune").source(sourceBuilder);
 
-        SearchResponse searchResponse = restClient.search(searchRequest);
+        SearchResponse searchResponse = restClient.search(searchRequest, RequestOptions.DEFAULT);
 
         SearchHits hits = searchResponse.getHits();
 
         for (SearchHit hit : hits.getHits()) {
-            logCityFromESHit(hit);
+            logRailwayStation(hit);
         }
 
     }
@@ -139,7 +140,7 @@ public class Geo1Test {
 
         SearchRequest searchRequest = new SearchRequest("commune").source(sourceBuilder);
 
-        SearchResponse searchResponse = restClient.search(searchRequest);
+        SearchResponse searchResponse = restClient.search(searchRequest, RequestOptions.DEFAULT);
 
         ParsedGeoDistance parsedGeoDistance = searchResponse.getAggregations().get("distanceRanges");
 
@@ -151,9 +152,10 @@ public class Geo1Test {
 
     }
 
-    private static void logCityFromESHit(SearchHit hit) {
+    private static void logRailwayStation(SearchHit hit) {
         Map<String,Object> source = hit.getSourceAsMap();
-        System.out.println("City = " + source.get("city"));
+        System.out.println("id = " + source.get("id"));
+        System.out.println("name = " + source.get("name"));
     }
 
 

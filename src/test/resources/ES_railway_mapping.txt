@@ -1,0 +1,37 @@
+curl -X PUT -H "Content-Type:application/json"  "http://localhost:9200/railway_stations" 
+
+curl -H "Content-Type:application/json"  -X PUT http://localhost:9200/railway_stations/_mapping -d '{
+      "properties": {
+         "gisId":{  
+            "type":"keyword"
+         },
+         "planning":{  
+            "type":"keyword"
+         },
+         "level":{  
+            "type":"keyword"
+         },
+         "name":{  
+            "type":"keyword"
+         },
+         "id":{  
+            "type":"keyword"
+         },
+         "railwayStationLocation":{  
+            "type":"geo_point",
+            "fields":{  
+               "keyword":{  
+                  "ignore_above":20,
+                  "type":"keyword"
+               }
+            }
+         },
+         "objectId":{  
+            "type":"keyword"
+         },
+         "status":{  
+            "type":"keyword"
+         }
+      }
+}
+'
